@@ -4,6 +4,12 @@ All notable public changes to WrapPin are recorded here.
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-09-15
+
+### Added
+
+- Added an X profile link to the Community section so users can follow the WrapPin maintainer directly from Settings.
+
 ## [1.0.0] - 2026-09-14
 
 First stable WrapPin release, based on Roam Control 0.9.2 Beta 3 and maintained as an unofficial community fork.
@@ -31,4 +37,5 @@ First stable WrapPin release, based on Roam Control 0.9.2 Beta 3 and maintained 
 - Earlier candidates passed physical-device installation and core usage testing; the final 1.0 package should still be installed once before public release.
 
 [Unreleased]: https://github.com/suversal/WrapPin/commits/main
+[1.0.3]: https://github.com/suversal/WrapPin/releases/tag/v1.0.3
 [1.0.0]: https://github.com/suversal/WrapPin/releases/tag/v1.0.0

@@ -63,6 +63,7 @@
 "WrapPin uses a narrow first-party sender instead of an analytics SDK, so extra device metadata cannot be added automatically." = "WrapPin uses a narrow first-party sender instead of an analytics SDK, so extra device metadata cannot be added automatically.";
 "Community" = "Community";
 "View & Star on GitHub" = "View & Star on GitHub";
+"Follow Me" = "Follow Me";
 "Star the repository if WrapPin helps you, or suggest an improvement. For pairing or connection problems, open Connection Health and use Copy Diagnostics. Never include pairing records, credentials or private locations." = "Star the repository if WrapPin helps you, or suggest an improvement. For pairing or connection problems, open Connection Health and use Copy Diagnostics. Never include pairing records, credentials or private locations.";
 "Dropped Pin" = "Dropped Pin";
 "Selected from the map" = "Selected from the map";

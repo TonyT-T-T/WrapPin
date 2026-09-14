@@ -1,5 +1,19 @@
 # WrapPin releases
 
+## 1.0.3 (Build 4)
+
+- Created: 15 September 2026
+- Package: `WrapPin-1.0.3-build4.ipa`
+- Build: optimized unsigned Xcode Release Archive, arm64 iPhone executable
+- Requires: iOS 27.0 or later
+- Xcode: 27.0 (`27A266a`)
+- Distribution: unsigned IPA for SideStore or another user-side signing tool
+- SHA-256: `bee2a4f7d29f69d844dc005239c67efbf07276b4a6a1ba206a3ddced4caec605`
+- Changes: adds an X profile link to the Community section in Settings.
+- Verification: Xcode Release Archive completed and the IPA payload, version, architecture, unsigned state, required legal resources and X profile entry were checked. Physical-device installation is delegated to the release tester.
+
+See [the 1.0.3 release notes](../Documentation/Release-1.0.3.md) for details.
+
 ## 1.0.2 (Build 3)
 
 - Created: 14 September 2026

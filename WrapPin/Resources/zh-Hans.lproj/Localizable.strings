@@ -428,6 +428,7 @@
 "View & Star on GitHub" = "在 GitHub 查看并 Star";
 "Report a Bug" = "反馈问题";
 "Request a Feature" = "功能建议";
+"Follow Me" = "follow我";
 "Star the repository if WrapPin helps you, or suggest an improvement. For pairing or connection problems, open Connection Health and use Copy Diagnostics. Never include pairing records, credentials or private locations." = "如果 WrapPin 对你有帮助，欢迎为仓库点个 Star，或提交改进建议。反馈配对或连接问题前，请先在“连接检测”中复制诊断信息；切勿提交配对记录、账号凭据或私人位置。";
 "GitHub may ask you to choose Bug Report or Feature Request first. For pairing or connection problems, open Connection Health and use Copy Diagnostics. Do not include pairing records, credentials or private locations." = "反馈连接问题时，请先在“连接检测”中复制诊断信息。不要提交配对记录、账号凭据或私人位置。";
 

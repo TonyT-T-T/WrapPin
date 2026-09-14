@@ -10,6 +10,9 @@ struct SettingsView: View {
     private static let featureRequestURL = URL(
         string: "https://github.com/suversal/WrapPin/issues/new?template=feature_request.yml"
     )!
+    private static let xProfileURL = URL(
+        string: "https://x.com/suversal"
+    )!
 
     @Environment(AppModel.self) private var appModel
     @Environment(\.dismiss) private var dismiss
@@ -123,6 +126,16 @@ struct SettingsView: View {
 
                     Link(destination: Self.featureRequestURL) {
                         Label("Request a Feature", systemImage: "lightbulb")
+                    }
+
+                    Link(destination: Self.xProfileURL) {
+                        Label {
+                            Text("Follow Me")
+                        } icon: {
+                            Text(verbatim: "𝕏")
+                                .font(.body.weight(.semibold))
+                                .frame(width: 24)
+                        }
                     }
                 } header: {
                     Text("Community")

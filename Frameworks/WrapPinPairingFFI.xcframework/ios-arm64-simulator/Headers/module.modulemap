@@ -1,0 +1,4 @@
+module WrapPinPairingFFI {
+    header "wrappin_pairing.h"
+    export *
+}

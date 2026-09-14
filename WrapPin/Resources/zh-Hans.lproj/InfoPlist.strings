@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "WrapPin";
+"NSLocalNetworkUsageDescription" = "WrapPin 需要使用本地网络，以通过 LocalDevVPN 安全地配对并连接这台 iPhone。";
+"NSLocationWhenInUseUsageDescription" = "WrapPin 使用你的位置，以便在定位会话结束后显示并回到真实位置。";

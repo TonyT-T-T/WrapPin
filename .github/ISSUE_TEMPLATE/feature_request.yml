@@ -1,0 +1,26 @@
+name: 功能建议
+description: 提出符合负责任测试原则的改进建议
+title: "[建议] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 想解决什么问题
+      description: 请说明开发、质量测试或个人测试中的实际需求。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的使用方式
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: 隐私与安全影响
+      description: 请说明该功能会接触哪些数据或设备权限。
+    validations:
+      required: true

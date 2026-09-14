@@ -1,0 +1,13 @@
+WrapPin includes a native bridge linked against open-source Rust
+software. Third-party components retain their own copyright and licence
+terms.
+
+idevice
+Project: https://github.com/jkcoxson/idevice
+Revision: 2bc58aaea40c9ced0167c8e7b512ee13c34c760f
+Licence: MIT
+Copyright: Jackson Coxson
+
+The exact Rust dependency graph is recorded in
+Native/WrapPinPairingFFI/Cargo.lock in the source repository. The repository's
+THIRD_PARTY_NOTICES.md records additional dependency information.

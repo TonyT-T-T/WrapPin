@@ -72,8 +72,8 @@ final class MapViewModel: NSObject, MKLocalSearchCompleterDelegate {
     func selectDroppedPin(at coordinate: CLLocationCoordinate2D) async {
         await selectCoordinate(
             coordinate,
-            fallbackName: "Dropped Pin",
-            fallbackDescription: "Selected from the map",
+            fallbackName: String(localized: "Dropped Pin"),
+            fallbackDescription: String(localized: "Selected from the map"),
             recenter: false
         )
     }
@@ -89,8 +89,8 @@ final class MapViewModel: NSObject, MKLocalSearchCompleterDelegate {
             resetSearchField()
             await selectCoordinate(
                 coordinate,
-                fallbackName: "Entered Location",
-                fallbackDescription: "Entered using coordinates",
+                fallbackName: String(localized: "Entered Location"),
+                fallbackDescription: String(localized: "Entered using coordinates"),
                 recenter: true
             )
             isSearching = false
@@ -240,7 +240,7 @@ final class MapViewModel: NSObject, MKLocalSearchCompleterDelegate {
         errorMessage = nil
         let pendingTarget = LocationTarget(
             name: fallbackName,
-            subtitle: "Finding nearby address…",
+            subtitle: String(localized: "Finding nearby address…"),
             latitude: coordinate.latitude,
             longitude: coordinate.longitude
         )

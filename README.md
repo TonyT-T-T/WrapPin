@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <strong>当前版本：</strong>1.0.0（Build 1） · <strong>系统要求：</strong>iOS 27+
+  <strong>当前版本：</strong>1.0.1（Build 2） · <strong>系统要求：</strong>iOS 27+
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/iOS-27%2B-blue" alt="iOS 27+">
   <img src="https://img.shields.io/badge/UI-SwiftUI-orange" alt="SwiftUI">
   <img src="https://img.shields.io/badge/%E7%BB%B4%E6%8A%A4%E8%80%85-suversal-purple" alt="由 suversal 维护">
-  <img src="https://img.shields.io/badge/Version-1.0.0-lightgrey" alt="Version 1.0.0">
+  <img src="https://img.shields.io/badge/Version-1.0.1-lightgrey" alt="Version 1.0.1">
   <img src="https://img.shields.io/badge/License-PolyForm%20NC%201.0.0-blue" alt="PolyForm Noncommercial 1.0.0">
 </p>
 

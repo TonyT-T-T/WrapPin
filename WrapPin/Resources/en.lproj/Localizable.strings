@@ -64,5 +64,12 @@
 "Community" = "Community";
 "View & Star on GitHub" = "View & Star on GitHub";
 "Star the repository if WrapPin helps you, or suggest an improvement. For pairing or connection problems, open Connection Health and use Copy Diagnostics. Never include pairing records, credentials or private locations." = "Star the repository if WrapPin helps you, or suggest an improvement. For pairing or connection problems, open Connection Health and use Copy Diagnostics. Never include pairing records, credentials or private locations.";
+"Dropped Pin" = "Dropped Pin";
+"Selected from the map" = "Selected from the map";
+"Entered Location" = "Entered Location";
+"Entered using coordinates" = "Entered using coordinates";
+"Finding nearby address…" = "Finding nearby address…";
+"Copy coordinates" = "Copy coordinates";
+"Coordinates copied" = "Coordinates copied";
 "Please try again." = "Please try again.";
 "The remaining walking route could not be prepared." = "The remaining walking route could not be prepared.";

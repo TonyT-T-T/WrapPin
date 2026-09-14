@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import UIKit
 
@@ -179,15 +180,22 @@ struct LocationSelectionCard: View {
                         .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2)
 
                     Button {
-                        copyLocation(for: location)
+                        copyCoordinates(for: location)
                     } label: {
-                        Image(systemName: didCopyCoordinates ? "checkmark" : "doc.on.doc")
+                        Label(
+                            didCopyCoordinates ? "Coordinates copied" : "Copy coordinates",
+                            systemImage: didCopyCoordinates ? "checkmark" : "doc.on.doc"
+                        )
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(didCopyCoordinates ? .green : .blue)
-                            .frame(width: 44, height: 44)
+                            .lineLimit(1)
+                            .padding(.horizontal, 8)
+                            .frame(minHeight: 44)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(didCopyCoordinates ? "Location copied" : "Copy location")
+                    .accessibilityLabel(
+                        didCopyCoordinates ? "Coordinates copied" : "Copy coordinates"
+                    )
                 }
             }
         }
@@ -232,17 +240,13 @@ struct LocationSelectionCard: View {
         return subtitle
     }
 
-    private func copyLocation(for location: LocationTarget) {
-        let name = location.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let subtitle = location.subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if subtitle.isEmpty || subtitle.caseInsensitiveCompare(name) == .orderedSame {
-            UIPasteboard.general.string = name
-        } else if subtitle.lowercased().hasPrefix(name.lowercased()) {
-            UIPasteboard.general.string = subtitle
-        } else {
-            UIPasteboard.general.string = "\(name), \(subtitle)"
-        }
+    private func copyCoordinates(for location: LocationTarget) {
+        UIPasteboard.general.string = String(
+            format: "%.6f, %.6f",
+            locale: Locale(identifier: "en_US_POSIX"),
+            location.latitude,
+            location.longitude
+        )
         didCopyCoordinates = true
 
         Task { @MainActor in

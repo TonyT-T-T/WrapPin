@@ -449,6 +449,13 @@
 "Stop command acknowledged; real location reacquisition unverified" = "已确认停止，正在等待重新获取真实位置";
 
 /* Status and map errors */
+"Dropped Pin" = "地图选点";
+"Selected from the map" = "从地图选择";
+"Entered Location" = "坐标位置";
+"Entered using coordinates" = "通过经纬度输入";
+"Finding nearby address…" = "正在查找附近地址…";
+"Copy coordinates" = "复制坐标";
+"Coordinates copied" = "已复制坐标";
 "Not configured" = "尚未设置";
 "Pairing support has not been added yet." = "请先完成本机配对。";
 "The paired device is available." = "本机已配对，可以开始模拟定位。";

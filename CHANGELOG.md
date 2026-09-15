@@ -4,6 +4,14 @@ All notable public changes to WrapPin are recorded here.
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-09-15
+
+### Changed
+
+- Increased the X profile icon to match the visual scale of the other Community rows.
+- Changed the Simplified Chinese X profile label from “follow我” to “关注我”.
+- Updated the README with the current feature set, validation status and release progress.
+
 ## [1.0.3] - 2026-09-15
 
 ### Added
@@ -37,5 +45,6 @@ First stable WrapPin release, based on Roam Control 0.9.2 Beta 3 and maintained 
 - Earlier candidates passed physical-device installation and core usage testing; the final 1.0 package should still be installed once before public release.
 
 [Unreleased]: https://github.com/suversal/WrapPin/commits/main
+[1.0.4]: https://github.com/suversal/WrapPin/releases/tag/v1.0.4
 [1.0.3]: https://github.com/suversal/WrapPin/releases/tag/v1.0.3
 [1.0.0]: https://github.com/suversal/WrapPin/releases/tag/v1.0.0

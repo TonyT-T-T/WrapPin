@@ -17,6 +17,7 @@ struct SettingsView: View {
     @Environment(AppModel.self) private var appModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .body) private var xLogoSize: CGFloat = 25
     @State private var isShowingDeviceSetup = false
     @State private var isReplayingOnboarding = false
     @State private var isConfirmingReset = false
@@ -133,8 +134,9 @@ struct SettingsView: View {
                             Text("Follow Me")
                         } icon: {
                             Text(verbatim: "𝕏")
-                                .font(.body.weight(.semibold))
-                                .frame(width: 24)
+                                .font(.system(size: xLogoSize, weight: .regular))
+                                .frame(width: xLogoSize, height: xLogoSize)
+                                .accessibilityHidden(true)
                         }
                     }
                 } header: {

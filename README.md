@@ -13,24 +13,34 @@
 </p>
 
 <p align="center">
-  <strong>当前版本：</strong>1.0.1（Build 2） · <strong>系统要求：</strong>iOS 27+
+  <strong>当前版本：</strong>1.0.4（Build 5） · <strong>系统要求：</strong>iOS 27+
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/iOS-27%2B-blue" alt="iOS 27+">
   <img src="https://img.shields.io/badge/UI-SwiftUI-orange" alt="SwiftUI">
   <img src="https://img.shields.io/badge/%E7%BB%B4%E6%8A%A4%E8%80%85-suversal-purple" alt="由 suversal 维护">
-  <img src="https://img.shields.io/badge/Version-1.0.1-lightgrey" alt="Version 1.0.1">
+  <img src="https://img.shields.io/badge/Version-1.0.4-lightgrey" alt="Version 1.0.4">
   <img src="https://img.shields.io/badge/License-PolyForm%20NC%201.0.0-blue" alt="PolyForm Noncommercial 1.0.0">
 </p>
 
-WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarthdev/Roam-Control) 的非官方社区中文分支，由 suversal 维护。它保留上游核心定位实现，在此基础上补充简体中文本地化、连接稳定性修复和中文文档；它不是独立原创项目，也不代表上游官方中文版。
+WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarthdev/Roam-Control) 的非官方社区中文分支，由 suversal 维护。上游提供设备配对、固定位置、模拟步行和真实位置恢复等核心能力；WrapPin 在此基础上完成简体中文界面与地图标签本地化、首次使用和连接引导、地址与坐标复制、连接诊断、LocalDevVPN 端点选择修复，并加入独立的深浅色图标、版本检查、GitHub 反馈及 X 关注入口。项目保留原作者署名和上游链接，不代表上游官方中文版。
 
 如果这个项目帮到了你，欢迎点一个 **Star**；如果你发现界面、文案、兼容性或连接流程还有改进空间，也欢迎提交 Issue 或 Pull Request。贡献前请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 项目面向开发、质量测试和个人负责任测试，支持固定位置、步行路线、收藏与历史记录，并通过本机配对和 LocalDevVPN 建立安全的开发者定位会话。
 
 > 请只在你拥有并控制的设备上使用。不要用于欺骗他人、伪造证据、规避安全限制，或违反第三方服务规则。
+
+## 当前进展
+
+- 当前公开版本为 **1.0.4（Build 5）**。
+- 已完成完整简体中文界面、地图标签本地化、配对与连接引导、中文安装文档和使用手册。
+- 已完善地址与坐标复制、连接检测、诊断信息复制、异常会话恢复和真实位置恢复流程。
+- 已修复长时间本机配对容易中断，以及误连 USB/Wi-Fi `169.254.x.x` 链路本地地址的问题；已优先使用 LocalDevVPN 端点。
+- 已使用正式 Xcode Release Archive 流程生成并校验可供 SideStore 签名的未签名 IPA。
+- 已验证前台固定位置、模拟步行和停止恢复流程；长时间锁屏保持仍需更多机型和系统版本测试。
+- 1.0.4 调整了社区列表中的 X 图标尺寸，并将入口文案改为“关注我”。
 
 ## 界面预览
 
@@ -48,12 +58,14 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 ## 主要功能
 
 - 使用 Apple 地图搜索地点、输入经纬度，或直接轻点地图选点。
+- 一键复制所选地点的可读地址或经纬度坐标。
 - 启动固定位置后直接更换坐标，无需重新建立整条连接。
 - 预览 Apple 地图步行路线，并设置步行速度。
 - 在步行期间暂停、继续、原路返回或更换目的地。
 - 保存常用地点，快速访问最近使用的位置。
 - 会话结束时主动清除模拟坐标并恢复真实位置。
 - 为 Wi-Fi 和蜂窝网络提供分开的连接引导与诊断。
+- 可在设置中检查公开版本、查看 GitHub 仓库、反馈问题、提交功能建议或关注维护者。
 - 支持深浅色外观、不同地图样式、动态字体、VoiceOver 和“减弱动态效果”。
 
 ## 实现原理
@@ -226,5 +238,7 @@ WrapPin 暂未通过 App Store 或 TestFlight 分发。第一阶段以 GitHub Re
 ## 反馈与贡献
 
 普通问题和可复现的故障请使用本仓库的 GitHub Issues。安全问题请通过 GitHub Security Advisories 私下报告。提交内容前请删除配对文件、PIN、签名材料、账号凭据和私人位置。
+
+你也可以在 WrapPin 的“设置 → 社区”中轻点“关注我”，或直接访问 X 上的 [@suversal](https://x.com/suversal)。
 
 本项目由 suversal 作为非官方社区分支维护。核心实现来源、原作者版权声明、上游项目链接和第三方许可证均予以保留。

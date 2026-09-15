@@ -1,5 +1,20 @@
 # WrapPin releases
 
+## 1.0.4 (Build 5)
+
+- Created: 15 September 2026
+- Package: `WrapPin-1.0.4-build5.ipa`
+- Build: optimized unsigned Xcode Release Archive, arm64 iPhone executable
+- Requires: iOS 27.0 or later
+- Xcode: 27.0 (`27A266a`)
+- Distribution: unsigned IPA for SideStore or another user-side signing tool
+- SHA-256: `a887d4a8f86bf51317eb47ad65475f1b71487cd101f905984429276aaa99a037`
+- Changes: aligns the X profile icon with the other Community icons, changes the Chinese label to “关注我”, and refreshes the README.
+- Verification: Xcode Release Archive completed and the IPA payload, version, architecture, unsigned state, required legal resources, Chinese label and X profile URL were checked. Physical-device installation and visual acceptance remain pending.
+- Publication: GitHub Release `v1.0.4`.
+
+See [the 1.0.4 build notes](../Documentation/Release-1.0.4.md) for details.
+
 ## 1.0.3 (Build 4)
 
 - Created: 15 September 2026

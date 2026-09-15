@@ -44,13 +44,11 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 
 ## 界面预览
 
-<p align="center">
-  <img src="Documentation/Images/README/fixed-location.png" width="280" alt="在地图上选择固定位置">
-  <img src="Documentation/Images/README/walking-active.png" width="280" alt="正在模拟步行路线">
-</p>
+<img width="3382" height="2446" alt="image" src="https://github.com/user-attachments/assets/07f4fd23-3240-4bea-9162-a0695a32f277" />
+<img width="3372" height="2406" alt="image" src="https://github.com/user-attachments/assets/256c6a1e-8d54-4cf5-8aa3-5dd18b0573c2" />
 
 <p align="center">
-  <sub>选择固定位置 · 模拟步行路线</sub>
+  <sub>模拟固定位置 · 模拟步行路线</sub>
 </p>
 
 > 以上为真实功能截图，个别英文或旧名称与当前版本不同；功能布局基本一致，实际界面会跟随系统语言。后续将用 WrapPin 中文真机截图替换。

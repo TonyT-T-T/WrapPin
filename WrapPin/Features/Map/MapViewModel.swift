@@ -9,6 +9,7 @@ final class MapViewModel: NSObject, MKLocalSearchCompleterDelegate {
     var searchSuggestions: [MapSearchSuggestion] = []
     var selectedLocation: LocationTarget?
     var isSearching = false
+    var isResolvingAddress = false
     var isFindingRealLocation = false
     var errorMessage: String?
     var cameraPosition: MapCameraPosition
@@ -31,6 +32,8 @@ final class MapViewModel: NSObject, MKLocalSearchCompleterDelegate {
     private var isRealLocationCacheTrusted = true
     @ObservationIgnored
     private var requiresFreshRealLocation = false
+    @ObservationIgnored
+    private var activeAddressLookupID: UUID?
 
     override init() {
         cameraPosition = .automatic
@@ -73,7 +76,6 @@ final class MapViewModel: NSObject, MKLocalSearchCompleterDelegate {
         await selectCoordinate(
             coordinate,
             fallbackName: String(localized: "Dropped Pin"),
-            fallbackDescription: String(localized: "Selected from the map"),
             recenter: false
         )
     }
@@ -90,7 +92,6 @@ final class MapViewModel: NSObject, MKLocalSearchCompleterDelegate {
             await selectCoordinate(
                 coordinate,
                 fallbackName: String(localized: "Entered Location"),
-                fallbackDescription: String(localized: "Entered using coordinates"),
                 recenter: true
             )
             isSearching = false
@@ -121,6 +122,31 @@ final class MapViewModel: NSObject, MKLocalSearchCompleterDelegate {
         resetSearchField()
         errorMessage = nil
         center(on: target)
+    }
+
+    func refreshAddressIfNeeded(for target: LocationTarget) async -> LocationTarget? {
+        guard target.needsAddressRefresh, selectedLocation?.id == target.id else { return nil }
+
+        await selectCoordinate(
+            target.coordinate,
+            fallbackName: refreshedFallbackName(for: target),
+            recenter: false,
+            preserveName: !target.usesGenericMapName
+        )
+
+        guard selectedLocation?.id == target.id else { return nil }
+        return selectedLocation
+    }
+
+    private func refreshedFallbackName(for target: LocationTarget) -> String {
+        let storedName = target.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if ["Entered Location", "坐标位置"].contains(storedName) {
+            return String(localized: "Entered Location")
+        }
+        if target.usesGenericMapName {
+            return String(localized: "Dropped Pin")
+        }
+        return target.name
     }
 
     func center(on target: LocationTarget) {
@@ -234,10 +260,20 @@ final class MapViewModel: NSObject, MKLocalSearchCompleterDelegate {
     private func selectCoordinate(
         _ coordinate: CLLocationCoordinate2D,
         fallbackName: String,
-        fallbackDescription: String,
-        recenter: Bool
+        recenter: Bool,
+        preserveName: Bool = false
     ) async {
         errorMessage = nil
+        let lookupID = UUID()
+        activeAddressLookupID = lookupID
+        isResolvingAddress = true
+        defer {
+            if activeAddressLookupID == lookupID {
+                activeAddressLookupID = nil
+                isResolvingAddress = false
+            }
+        }
+
         let pendingTarget = LocationTarget(
             name: fallbackName,
             subtitle: String(localized: "Finding nearby address…"),
@@ -255,37 +291,74 @@ final class MapViewModel: NSObject, MKLocalSearchCompleterDelegate {
             )
         }
 
-        guard let request = MKReverseGeocodingRequest(
-            location: CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-        ) else {
-            selectedLocation = LocationTarget(
-                name: fallbackName,
-                subtitle: fallbackDescription,
-                latitude: coordinate.latitude,
-                longitude: coordinate.longitude
-            )
-            return
-        }
+        let item = await reverseGeocode(coordinate)
+        guard
+            activeAddressLookupID == lookupID,
+            selectedLocation?.id == pendingTarget.id
+        else { return }
 
-        do {
-            let items = try await request.mapItems
-            guard selectedLocation?.id == pendingTarget.id, let item = items.first else { return }
-
+        if let item {
             selectedLocation = LocationTarget(
-                name: item.name ?? fallbackName,
+                name: preserveName ? fallbackName : (item.name ?? fallbackName),
                 subtitle: placeDescription(for: item),
                 latitude: coordinate.latitude,
                 longitude: coordinate.longitude
             )
-        } catch {
-            guard selectedLocation?.id == pendingTarget.id else { return }
+        } else {
             selectedLocation = LocationTarget(
                 name: fallbackName,
-                subtitle: fallbackDescription,
+                subtitle: unavailableAddressDescription(for: coordinate),
                 latitude: coordinate.latitude,
                 longitude: coordinate.longitude
             )
         }
+    }
+
+    private func reverseGeocode(_ coordinate: CLLocationCoordinate2D) async -> MKMapItem? {
+        let location = CLLocation(
+            latitude: coordinate.latitude,
+            longitude: coordinate.longitude
+        )
+
+        for attempt in 0..<2 {
+            guard let request = MKReverseGeocodingRequest(location: location) else { return nil }
+            request.preferredLocale = Locale.current
+
+            do {
+                if let item = try await request.mapItems.first {
+                    return item
+                }
+            } catch is CancellationError {
+                return nil
+            } catch {
+                // A short second attempt covers transient network and service failures.
+            }
+
+            if attempt == 0 {
+                do {
+                    try await Task.sleep(for: .milliseconds(450))
+                } catch {
+                    return nil
+                }
+            }
+        }
+
+        return nil
+    }
+
+    private func unavailableAddressDescription(
+        for coordinate: CLLocationCoordinate2D
+    ) -> String {
+        let coordinates = String(
+            format: "%.6f, %.6f",
+            locale: Locale(identifier: "en_US_POSIX"),
+            coordinate.latitude,
+            coordinate.longitude
+        )
+        return String(
+            format: NSLocalizedString("Address unavailable · %@", comment: ""),
+            coordinates
+        )
     }
 
     private func coordinateInput(from query: String) -> CoordinateInput {

@@ -4,8 +4,8 @@ This guide covers WrapPin's development builds and the planned IPA workflow.
 
 ## Current release identity
 
-- Marketing version: `1.0.4`
-- Current build: `5`
+- Marketing version: `1.0.5`
+- Current build: `6`
 - Bundle identifier: `com.suversal.wrappin`
 - Minimum deployment target: iOS 27
 - Supported device family: iPhone

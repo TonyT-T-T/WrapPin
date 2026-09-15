@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <strong>当前版本：</strong>1.0.4（Build 5） · <strong>系统要求：</strong>iOS 27+
+  <strong>当前版本：</strong>1.0.5（Build 6） · <strong>系统要求：</strong>iOS 27+
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/iOS-27%2B-blue" alt="iOS 27+">
   <img src="https://img.shields.io/badge/UI-SwiftUI-orange" alt="SwiftUI">
   <img src="https://img.shields.io/badge/%E7%BB%B4%E6%8A%A4%E8%80%85-suversal-purple" alt="由 suversal 维护">
-  <img src="https://img.shields.io/badge/Version-1.0.4-lightgrey" alt="Version 1.0.4">
+  <img src="https://img.shields.io/badge/Version-1.0.5-lightgrey" alt="Version 1.0.5">
   <img src="https://img.shields.io/badge/License-PolyForm%20NC%201.0.0-blue" alt="PolyForm Noncommercial 1.0.0">
 </p>
 
@@ -34,13 +34,13 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 
 ## 当前进展
 
-- 当前公开版本为 **1.0.4（Build 5）**。
+- 当前公开版本为 **1.0.5（Build 6）**。
 - 已完成完整简体中文界面、地图标签本地化、配对与连接引导、中文安装文档和使用手册。
 - 已完善地址与坐标复制、连接检测、诊断信息复制、异常会话恢复和真实位置恢复流程。
 - 已修复长时间本机配对容易中断，以及误连 USB/Wi-Fi `169.254.x.x` 链路本地地址的问题；已优先使用 LocalDevVPN 端点。
 - 已使用正式 Xcode Release Archive 流程生成并校验可供 SideStore 签名的未签名 IPA。
 - 已验证前台固定位置、模拟步行和停止恢复流程；长时间锁屏保持仍需更多机型和系统版本测试。
-- 1.0.4 调整了社区列表中的 X 图标尺寸，并将入口文案改为“关注我”。
+- 1.0.5 改善了国内外地图选点的地址解析，修复“正在查找附近地址…”被保存到历史记录的问题，并在无法获取地址时显示精确经纬度。
 
 ## 界面预览
 
@@ -150,9 +150,12 @@ WrapPin 暂未通过 App Store 或 TestFlight 分发。第一阶段以 GitHub Re
 
 ## 使用 SideStore 安装
 
+> [!IMPORTANT]
+> 不要在 SideStore 中使用“通过 URL 安装”或直接粘贴 GitHub Release 的 IPA 链接。部分 SideStore 版本会把远程文件名误当成 Bundle ID，从而出现 `com.suversal.wrappin` 与 `WrapPin-版本-build编号` 不匹配的安装错误。请先将 IPA 下载并保存到 iPhone 的“文件”App，再进入 `SideStore → My Apps → + → Choose Files`，从本地选择 IPA 安装。
+
 1. 打开本仓库的 GitHub Releases，下载与版本号对应的 IPA 和 SHA-256 校验值。
 2. 在 Mac 终端运行 `shasum -a 256 文件名.ipa`，确认结果与 Release 页面完全一致。
-3. 在 SideStore 中轻点 **+**，选择刚下载的 IPA。
+3. 将 IPA 保存到 iPhone 的“文件”App，在 SideStore 的 **My Apps** 中轻点 **+**，选择 **Choose Files** 后选中该 IPA。
 4. 让 SideStore 使用你的 Apple 账号完成签名和安装。
 5. 更新版本时直接覆盖安装，不要先删除旧版；删除 App 会一并删除本地设置，并可能需要重新配对。
 

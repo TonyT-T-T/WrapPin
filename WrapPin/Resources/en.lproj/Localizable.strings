@@ -70,6 +70,7 @@
 "Entered Location" = "Entered Location";
 "Entered using coordinates" = "Entered using coordinates";
 "Finding nearby address…" = "Finding nearby address…";
+"Address unavailable · %@" = "Address unavailable · %@";
 "Copy coordinates" = "Copy coordinates";
 "Coordinates copied" = "Coordinates copied";
 "Please try again." = "Please try again.";

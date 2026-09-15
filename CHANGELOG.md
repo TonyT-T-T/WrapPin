@@ -4,6 +4,20 @@ All notable public changes to WrapPin are recorded here.
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-09-15
+
+### Improved
+
+- Added locale-aware Apple Maps reverse geocoding with one retry for transient or empty results.
+- Re-resolve older unresolved favourites and history entries when they are selected, while preserving custom favourite names.
+- Show an exact latitude and longitude when Apple Maps cannot provide a readable address.
+
+### Fixed
+
+- Prevented temporary “Finding nearby address…” text from being saved by disabling location actions until address resolution completes.
+- Ensured an empty reverse-geocoding response reaches a stable fallback instead of leaving the loading text indefinitely.
+- Documented the reliable local-file SideStore installation flow to avoid remote filename and bundle-identifier mismatches.
+
 ## [1.0.4] - 2026-09-15
 
 ### Changed
@@ -45,6 +59,7 @@ First stable WrapPin release, based on Roam Control 0.9.2 Beta 3 and maintained 
 - Earlier candidates passed physical-device installation and core usage testing; the final 1.0 package should still be installed once before public release.
 
 [Unreleased]: https://github.com/suversal/WrapPin/commits/main
+[1.0.5]: https://github.com/suversal/WrapPin/releases/tag/v1.0.5
 [1.0.4]: https://github.com/suversal/WrapPin/releases/tag/v1.0.4
 [1.0.3]: https://github.com/suversal/WrapPin/releases/tag/v1.0.3
 [1.0.0]: https://github.com/suversal/WrapPin/releases/tag/v1.0.0

@@ -256,12 +256,14 @@ struct HomeView: View {
                     LocationSelectionCard(
                         location: mapModel.selectedLocation,
                         isFavourite: mapModel.selectedLocation.map(appModel.isFavourite) ?? false,
+                        isResolvingAddress: mapModel.isResolvingAddress,
                         isPaired: isPaired,
                         sessionPhase: appModel.deviceSession.phase,
                         localDevVPNInstallURL: appModel.localDevVPNInstallURL,
                         isPreviewingWalkingRoute: walkingRoutePlanner.isLoading,
                         walkingRouteError: walkingRoutePlanner.errorMessage,
                         onToggleFavourite: {
+                            guard !mapModel.isResolvingAddress else { return }
                             guard let target = mapModel.selectedLocation else { return }
                             appModel.toggleFavourite(target)
                         },
@@ -271,6 +273,7 @@ struct HomeView: View {
                             mapModel.clearSelectedLocation()
                         },
                         onPreviewWalkingRoute: {
+                            guard !mapModel.isResolvingAddress else { return }
                             guard let target = mapModel.selectedLocation else { return }
                             Task {
                                 if let route = await walkingRoutePlanner.preview(to: target) {
@@ -280,6 +283,7 @@ struct HomeView: View {
                             }
                         },
                         onStart: {
+                            guard !mapModel.isResolvingAddress else { return }
                             guard let target = mapModel.selectedLocation else { return }
                             shouldRefreshRealLocationWhenActive = false
                             mapModel.show(target)
@@ -467,6 +471,12 @@ struct HomeView: View {
                 onSelect: { target in
                     guard !walkingSimulation.locksDestination else { return }
                     mapModel.show(target)
+                    Task {
+                        guard let refreshed = await mapModel.refreshAddressIfNeeded(for: target) else {
+                            return
+                        }
+                        appModel.updateStoredLocationMetadata(with: refreshed)
+                    }
                 },
                 onToggleFavourite: appModel.toggleFavourite,
                 onDeleteFavourite: appModel.removeFavourite,

@@ -109,6 +109,28 @@ final class AppModel {
         addToHistory(target)
     }
 
+    func updateStoredLocationMetadata(with target: LocationTarget) {
+        if let index = locationHistory.firstIndex(where: { $0.id == target.id }) {
+            locationHistory[index] = mergingStoredName(
+                from: locationHistory[index],
+                with: target
+            )
+            save(locationHistory, forKey: Self.historyKey)
+        }
+
+        if let index = favouriteLocations.firstIndex(where: { $0.id == target.id }) {
+            favouriteLocations[index] = mergingStoredName(
+                from: favouriteLocations[index],
+                with: target
+            )
+            save(favouriteLocations, forKey: Self.favouritesKey)
+        }
+
+        if let selectedTarget, selectedTarget.id == target.id {
+            self.selectedTarget = mergingStoredName(from: selectedTarget, with: target)
+        }
+    }
+
     func isFavourite(_ target: LocationTarget) -> Bool {
         favouriteLocations.contains { $0.id == target.id }
     }
@@ -469,6 +491,18 @@ final class AppModel {
         locationHistory.insert(target, at: 0)
         locationHistory = Array(locationHistory.prefix(30))
         save(locationHistory, forKey: Self.historyKey)
+    }
+
+    private func mergingStoredName(
+        from stored: LocationTarget,
+        with refreshed: LocationTarget
+    ) -> LocationTarget {
+        LocationTarget(
+            name: stored.usesGenericMapName ? refreshed.name : stored.name,
+            subtitle: refreshed.subtitle,
+            latitude: stored.latitude,
+            longitude: stored.longitude
+        )
     }
 
     private func applyDeviceSessionPhase(_ phase: DeviceSessionPhase) {

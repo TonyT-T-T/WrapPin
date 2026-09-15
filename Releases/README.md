@@ -1,5 +1,20 @@
 # WrapPin releases
 
+## 1.0.5 (Build 6)
+
+- Created: 15 September 2026
+- Package: `WrapPin-1.0.5-build6.ipa`
+- Build: optimized unsigned Xcode Release Archive, arm64 iPhone executable
+- Requires: iOS 27.0 or later
+- Xcode: 27.0 (`27A266a`)
+- Distribution: unsigned IPA for SideStore or another user-side signing tool
+- SHA-256: `723fb61fe08ce9cb7fa99b98875838c3a2770cc61470bd4e9a97efe8728df00b`
+- Changes: improves worldwide map-selection address resolution, prevents unresolved loading text from entering saved places, refreshes older unresolved entries, and shows exact coordinates when no readable address is available.
+- Verification: Xcode Release Archive, localization, native failure checks, IPA payload, version, architecture, unsigned state, privacy manifest and legal resources were checked. The address-resolution changes passed a SideStore physical-device test.
+- Publication: GitHub Release `v1.0.5`.
+
+See [the 1.0.5 build notes](../Documentation/Release-1.0.5.md) for details.
+
 ## 1.0.4 (Build 5)
 
 - Created: 15 September 2026

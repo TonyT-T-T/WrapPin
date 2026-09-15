@@ -7,6 +7,7 @@ struct LocationSelectionCard: View {
 
     let location: LocationTarget?
     let isFavourite: Bool
+    let isResolvingAddress: Bool
     let isPaired: Bool
     let sessionPhase: DeviceSessionPhase
     let localDevVPNInstallURL: URL
@@ -174,6 +175,12 @@ struct LocationSelectionCard: View {
                     .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
 
                 HStack(spacing: 7) {
+                    if isResolvingAddress {
+                        ProgressView()
+                            .controlSize(.mini)
+                            .accessibilityHidden(true)
+                    }
+
                     Text(locationDescription(for: location))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -210,6 +217,7 @@ struct LocationSelectionCard: View {
                 .frame(width: 44, height: 44)
         }
         .buttonStyle(.plain)
+        .disabled(isResolvingAddress)
         .accessibilityLabel(isFavourite ? "Remove from favourites" : "Add to favourites")
 
         if canClearSelection {
@@ -318,7 +326,7 @@ struct LocationSelectionCard: View {
     }
 
     private var isPrimaryDisabled: Bool {
-        isWorking || (!isPaired && !isActive)
+        isResolvingAddress || isWorking || (!isPaired && !isActive)
     }
 
     private var canClearSelection: Bool {
@@ -331,7 +339,8 @@ struct LocationSelectionCard: View {
     }
 
     private var canPreviewWalkingRoute: Bool {
-        switch sessionPhase {
+        guard !isResolvingAddress else { return false }
+        return switch sessionPhase {
         case .idle, .active:
             true
         case .openingLocalDevVPN, .discovering, .connecting, .stopping, .failed:

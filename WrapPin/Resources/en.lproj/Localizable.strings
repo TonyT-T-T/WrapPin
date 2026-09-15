@@ -75,3 +75,13 @@
 "Coordinates copied" = "Coordinates copied";
 "Please try again." = "Please try again.";
 "The remaining walking route could not be prepared." = "The remaining walking route could not be prepared.";
+"Background Session" = "Background Session";
+"Waiting for permission" = "Waiting for permission";
+"Starting" = "Starting";
+"Location permission denied" = "Location permission denied";
+"Location access restricted" = "Location access restricted";
+"Location Services off" = "Location Services off";
+"Background mode missing" = "Background mode missing";
+"Temporarily unavailable" = "Temporarily unavailable";
+"The current simulation can still work in the foreground, but background continuity is unavailable. Check Location access for WrapPin in Settings." = "The current simulation can still work in the foreground, but background continuity is unavailable. Check Location access for WrapPin in Settings.";
+"WrapPin has not detected another VPN. This is a troubleshooting check, not a diagnosis." = "WrapPin has not detected another VPN. This is a troubleshooting check, not a diagnosis.";

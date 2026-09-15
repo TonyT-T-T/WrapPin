@@ -448,6 +448,16 @@
 "Stop requested; awaiting device response" = "已请求停止，正在等待本机响应";
 "Stop not confirmed; real location unverified" = "未确认停止，真实位置尚未验证";
 "Stop command acknowledged; real location reacquisition unverified" = "已确认停止，正在等待重新获取真实位置";
+"Background Session" = "后台保持";
+"Waiting for permission" = "等待定位授权";
+"Starting" = "正在启动";
+"Location permission denied" = "定位权限已关闭";
+"Location access restricted" = "定位权限受限";
+"Location Services off" = "系统定位服务已关闭";
+"Background mode missing" = "缺少后台定位配置";
+"Temporarily unavailable" = "暂时无法获取更新";
+"The current simulation can still work in the foreground, but background continuity is unavailable. Check Location access for WrapPin in Settings." = "当前模拟定位仍可在前台运行，但无法保证切换到其他 App 后持续。请到系统设置检查 WrapPin 的定位权限。";
+"WrapPin has not detected another VPN. This is a troubleshooting check, not a diagnosis." = "未检测到其他 VPN。此结果仅用于排障，不代表已经确定问题原因。";
 
 /* Status and map errors */
 "Dropped Pin" = "地图选点";

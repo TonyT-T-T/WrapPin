@@ -1,6 +1,6 @@
-import BackgroundTasks
 import Foundation
 import Observation
+import UIKit
 import WrapPinPairingFFI
 
 struct PairedDeviceDetails: Equatable, Sendable {
@@ -26,10 +26,6 @@ final class OnDevicePairingCoordinator {
     typealias RecordStore = @MainActor (Data, Data?) async throws -> PairingRecordSummary
 
     static let shared = OnDevicePairingCoordinator()
-
-    private static var taskIdentifierPrefix: String {
-        BackgroundTaskIdentifier.prefix(for: "pairing")
-    }
 
     private(set) var phase: OnDevicePairingPhase = .idle {
         didSet {
@@ -57,13 +53,11 @@ final class OnDevicePairingCoordinator {
     private let publisher = PairingBonjourPublisher()
     private var activeSession: OpaquePointer?
     private var activeRunIdentifier: UUID?
-    private var submittedTaskIdentifier: String?
-    private var backgroundTask: BGContinuedProcessingTask?
+    private var backgroundAssertion = UIBackgroundTaskIdentifier.invalid
     private var recordStore: RecordStore?
     private var cancellationRequested = false
     private var pendingFailureMessage: String?
     private var backgroundTaskFinished = true
-    private var backgroundProgressTask: Task<Void, Never>?
     private var workerIsRunning = false
     private var storageIsRunning = false
 
@@ -103,62 +97,10 @@ final class OnDevicePairingCoordinator {
         recordStore = storeRecord
         phase = .preparing
 
-        let identifier = "\(Self.taskIdentifierPrefix).\(UUID().uuidString)"
-        let wasRegistered = BGTaskScheduler.shared.register(
-            forTaskWithIdentifier: identifier,
-            using: .main
-        ) { task in
-            guard let task = task as? BGContinuedProcessingTask else {
-                task.setTaskCompleted(success: false)
-                return
-            }
-
-            MainActor.assumeIsolated {
-                guard Self.shared.submittedTaskIdentifier == identifier,
-                      !Self.shared.cancellationRequested else {
-                    task.setTaskCompleted(success: false)
-                    return
-                }
-                Self.shared.beginPairing(with: task)
-            }
-        }
-
-        guard wasRegistered else {
-            recordStore = nil
-            phase = .failed(String(localized:
-                "iOS could not register the secure pairing task. Close WrapPin, reopen it, and try again."
-            ))
-            return
-        }
-
-        submittedTaskIdentifier = identifier
-
-        let request = BGContinuedProcessingTaskRequest(
-            identifier: identifier,
-            title: "WrapPin",
-            subtitle: "Preparing secure pairing…"
-        )
-        request.strategy = .queue
-
-        Task {
-            guard submittedTaskIdentifier == identifier, phase == .preparing, !cancellationRequested else { return }
-            do {
-                try await BGTaskScheduler.shared.submitTaskRequest(request)
-                if submittedTaskIdentifier != identifier || cancellationRequested {
-                    BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: identifier)
-                }
-            } catch {
-                // Clean only this submission, including late completion from an old attempt.
-                BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: identifier)
-                guard submittedTaskIdentifier == identifier, phase == .preparing, !cancellationRequested else { return }
-                BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: identifier)
-                submittedTaskIdentifier = nil
-                recordStore = nil
-                let reason = SchedulerFailureReason.classify(error)
-                schedulerFailureReason = reason
-                phase = .failed(reason.pairingGuidance)
-            }
-        }
+        // Pairing must keep running while Settings is in front, but must not depend
+        // on a bundle-identifier-sensitive BGTaskScheduler registration.
+        beginBackgroundAssertion()
+        runNativePairing()
     }
 
     func cancel() {
@@ -176,13 +118,10 @@ final class OnDevicePairingCoordinator {
         if let activeSession {
             wp_remote_pairing_session_cancel(activeSession)
         }
-        if let submittedTaskIdentifier {
-            BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: submittedTaskIdentifier)
-        }
         if !workerIsRunning {
-            submittedTaskIdentifier = nil
             recordStore = nil
             phase = .idle
+            finishBackgroundTask(success: false)
         }
     }
 
@@ -193,53 +132,12 @@ final class OnDevicePairingCoordinator {
         }
     }
 
-    private func beginPairing(with task: BGContinuedProcessingTask) {
-        guard phase == .preparing, !workerIsRunning else {
-            task.setTaskCompleted(success: false)
-            return
-        }
-
-        backgroundTask = task
+    private func beginBackgroundAssertion() {
         backgroundTaskFinished = false
-        task.progress.totalUnitCount = 100
-        task.progress.completedUnitCount = 5
-        task.expirationHandler = { [weak self] in
-            Task { @MainActor in
-                self?.pairingTaskExpired()
-            }
-        }
-        startBackgroundProgress(for: task)
-
-        runNativePairing()
-    }
-
-    private func startBackgroundProgress(for task: BGContinuedProcessingTask) {
-        backgroundProgressTask?.cancel()
-        backgroundProgressTask = Task { @MainActor [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(15))
-                guard
-                    !Task.isCancelled,
-                    let self,
-                    self.backgroundTask === task,
-                    !self.backgroundTaskFinished
-                else { return }
-
-                let stageCeiling: Int64 = switch self.phase {
-                case .preparing, .waitingForSettings:
-                    54
-                case .showingPIN:
-                    79
-                case .storing:
-                    99
-                case .idle, .cancelling, .success, .failed:
-                    task.progress.completedUnitCount
-                }
-                task.progress.completedUnitCount = min(
-                    task.progress.completedUnitCount + 1,
-                    stageCeiling
-                )
-            }
+        backgroundAssertion = UIApplication.shared.beginBackgroundTask(
+            withName: "WrapPin pairing"
+        ) { [weak self] in
+            Task { @MainActor in self?.pairingTaskExpired() }
         }
     }
 
@@ -301,21 +199,11 @@ final class OnDevicePairingCoordinator {
     fileprivate func presentPIN(_ pin: String) {
         guard workerIsRunning, !cancellationRequested else { return }
         phase = .showingPIN(pin)
-        backgroundTask?.progress.completedUnitCount = 55
-        backgroundTask?.updateTitle(
-            "WrapPin pairing code",
-            subtitle: "Enter \(pin) in Settings"
-        )
     }
 
     private func advertisementDidPublish() {
         guard workerIsRunning, !cancellationRequested else { return }
         phase = .waitingForSettings
-        backgroundTask?.progress.completedUnitCount = 25
-        backgroundTask?.updateTitle(
-            "WrapPin",
-            subtitle: "Choose Pair with WrapPin in Settings"
-        )
     }
 
     private func advertisementDidFail() {
@@ -356,32 +244,22 @@ final class OnDevicePairingCoordinator {
         case .success(let record, let hostAltIRK, let device):
             storageIsRunning = true
             phase = .storing
-            backgroundTask?.progress.completedUnitCount = 80
-
             guard let recordStore else {
                 storageIsRunning = false
                 fail("WrapPin could not securely store the new pairing.")
                 return
             }
 
-            let storageTaskIdentifier = submittedTaskIdentifier
             Task {
                 defer { self.storageIsRunning = false }
                 do {
                     _ = try await recordStore(record, hostAltIRK)
-                    guard self.submittedTaskIdentifier == storageTaskIdentifier,
-                          self.phase == .storing else { return }
+                    guard self.phase == .storing else { return }
                     self.recordStore = nil
                     self.phase = .success(device)
-                    self.backgroundTask?.progress.completedUnitCount = 100
-                    self.backgroundTask?.updateTitle(
-                        "WrapPin",
-                        subtitle: "Pairing complete"
-                    )
                     self.finishBackgroundTask(success: true)
                 } catch {
-                    guard self.submittedTaskIdentifier == storageTaskIdentifier,
-                          self.phase == .storing else { return }
+                    guard self.phase == .storing else { return }
                     self.fail("WrapPin could not securely store the new pairing.")
                 }
             }
@@ -418,14 +296,13 @@ final class OnDevicePairingCoordinator {
         finishBackgroundTask(success: false)
     }
 
-    private func finishBackgroundTask(success: Bool) {
+    private func finishBackgroundTask(success _: Bool) {
         guard !backgroundTaskFinished else { return }
         backgroundTaskFinished = true
-        backgroundProgressTask?.cancel()
-        backgroundProgressTask = nil
-        backgroundTask?.setTaskCompleted(success: success)
-        backgroundTask = nil
-        submittedTaskIdentifier = nil
+        if backgroundAssertion != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundAssertion)
+            backgroundAssertion = .invalid
+        }
     }
 }
 

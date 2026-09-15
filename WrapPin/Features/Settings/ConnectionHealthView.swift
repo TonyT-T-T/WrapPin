@@ -33,6 +33,13 @@ struct ConnectionHealthView: View {
                 )
 
                 healthRow(
+                    title: String(localized: "Background Session"),
+                    value: backgroundSessionValue,
+                    symbol: backgroundSessionSymbol,
+                    color: backgroundSessionColor
+                )
+
+                healthRow(
                     title: String(localized: "Connection Stage"),
                     value: appModel.deviceSession.connectionStage.title,
                     symbol: "point.3.connected.trianglepath.dotted",
@@ -46,6 +53,17 @@ struct ConnectionHealthView: View {
                         symbol: "network",
                         color: .secondary
                     )
+                }
+
+                if case .active = appModel.deviceSession.phase,
+                   !appModel.deviceSession.backgroundKeepAlive.started {
+                    Label(
+                        "The current simulation can still work in the foreground, but background continuity is unavailable. Check Location access for WrapPin in Settings.",
+                        systemImage: "exclamationmark.triangle.fill"
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.orange)
+                    .accessibilityElement(children: .combine)
                 }
             }
 
@@ -133,7 +151,7 @@ struct ConnectionHealthView: View {
 
             Section("Other VPNs") {
                 Text("Another VPN may affect local device connections. If it is appropriate for your network, compare a test with that VPN paused. Keep LocalDevVPN enabled when starting a location session.")
-                Text("WrapPin has not detected another VPN. This is a troubleshooting check, not a diagnosis; an iOS scheduler rejection happens before the pairing connection starts.")
+                Text("WrapPin has not detected another VPN. This is a troubleshooting check, not a diagnosis.")
                     .foregroundStyle(.secondary)
             }
 
@@ -265,6 +283,31 @@ struct ConnectionHealthView: View {
         }
     }
 
+    private var backgroundSessionValue: String {
+        appModel.deviceSession.backgroundKeepAlive.status.title
+    }
+
+    private var backgroundSessionSymbol: String {
+        switch appModel.deviceSession.backgroundKeepAlive.status {
+        case .receivingUpdates: "location.circle.fill"
+        case .awaitingAuthorization, .starting: "arrow.triangle.2.circlepath"
+        case .denied, .restricted, .servicesDisabled, .missingBackgroundMode, .failed:
+            "exclamationmark.triangle.fill"
+        case .locationUnavailable: "location.slash.circle"
+        case .idle, .stopped: "pause.circle"
+        }
+    }
+
+    private var backgroundSessionColor: Color {
+        switch appModel.deviceSession.backgroundKeepAlive.status {
+        case .receivingUpdates: .green
+        case .awaitingAuthorization, .starting: .blue
+        case .denied, .restricted, .servicesDisabled, .missingBackgroundMode, .failed: .orange
+        case .locationUnavailable: .orange
+        case .idle, .stopped: .secondary
+        }
+    }
+
     private var resultMessage: String? {
         switch diagnostics.state {
         case .notRun, .running: nil
@@ -351,12 +394,12 @@ struct ConnectionHealthView: View {
         iOS: \(UIDevice.current.systemVersion)
         Pairing: \(pairingValue)
         Last pairing failure stage (this launch): \(appModel.onDevicePairing.lastFailureStage?.rawValue ?? "None")
-        Pairing scheduler reason (this launch): \(appModel.onDevicePairing.schedulerFailureReason?.rawValue ?? "None")
         LocalDevVPN: \(localDevVPNValue)
         Session: \(sessionValue)
+        Background session: \(appModel.deviceSession.backgroundKeepAlive.status.rawValue)
+        Background session started: \(appModel.deviceSession.backgroundKeepAlive.started)
         Last session issue stage (this launch): \(appModel.deviceSession.lastFailureStage?.rawValue ?? "None")
         Last session issue disposition: \(appModel.deviceSession.lastFailureDisposition?.rawValue ?? "None")
-        Session scheduler reason (this launch): \(appModel.deviceSession.schedulerFailureReason?.rawValue ?? "None")
         Restoration: \(appModel.deviceSession.restorationStatus)
         Last connection check: \(checked)
         Connection check result: \(diagnosticResultStatus)

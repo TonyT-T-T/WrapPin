@@ -4,6 +4,16 @@ All notable public changes to WrapPin are recorded here.
 
 ## [Unreleased]
 
+### Improved
+
+- Kept on-device pairing alive while switching to Settings without making pairing depend on `BGTaskScheduler` registration.
+- Started the native location worker directly and used Core Location only as a privacy-preserving background keep-alive while a simulation is active.
+- Added a background-session status to Connection Health so permission and delivery problems are visible without collecting coordinates.
+
+### Fixed
+
+- Avoided SideStore runtime bundle-identifier changes blocking pairing or location startup through mismatched background-task identifiers.
+
 ## [1.0.5] - 2026-09-15
 
 ### Improved

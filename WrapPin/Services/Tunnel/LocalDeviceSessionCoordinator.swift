@@ -1,4 +1,3 @@
-import BackgroundTasks
 import Foundation
 import Network
 import Observation
@@ -84,10 +83,6 @@ final class LocalDeviceSessionCoordinator: NSObject {
         let fallbackHost: String?
     }
 
-    private static var taskIdentifierPrefix: String {
-        BackgroundTaskIdentifier.prefix(for: "location")
-    }
-
     private static let localDevVPNPeerAddress = "10.7.0.1"
     private static let enableURL = URL(string: "localdevvpn://enable?scheme=wrappin")!
     private static let minimumRestorationDisplayDuration: TimeInterval = 1.2
@@ -113,6 +108,7 @@ final class LocalDeviceSessionCoordinator: NSObject {
             }
         }
     }
+    let backgroundKeepAlive = BackgroundLocationKeepAlive()
     private(set) var connectionStage: DeviceSessionConnectionStage = .idle
     private(set) var endpointSource: DeviceEndpointSource?
     private(set) var lastFailureMessage: String?
@@ -164,10 +160,6 @@ final class LocalDeviceSessionCoordinator: NSObject {
 
     private var activeSession: OpaquePointer?
     private var activeRunIdentifier: UUID?
-    private var submittedTaskIdentifier: String?
-    private var backgroundTask: BGContinuedProcessingTask?
-    private var backgroundProgressTask: Task<Void, Never>?
-    private var backgroundTaskFinished = true
     private var workerIsRunning = false
     private var cancellationRequested = false
     private var pendingFailureMessage: String?
@@ -266,10 +258,6 @@ final class LocalDeviceSessionCoordinator: NSObject {
         )
         phase = .active(target)
         connectionStage = .active
-        backgroundTask?.updateTitle(
-            "WrapPin",
-            subtitle: "Location active at \(target.name)"
-        )
         return .updated
     }
 
@@ -352,6 +340,7 @@ final class LocalDeviceSessionCoordinator: NSObject {
     }
 
     func stop() {
+        backgroundKeepAlive.stop()
         mobileDataGuidance = nil
         switch phase {
         case .idle:
@@ -367,20 +356,16 @@ final class LocalDeviceSessionCoordinator: NSObject {
             connectionStage = .restoringRealLocation
             if let activeSession {
                 wp_location_session_cancel(activeSession)
-            } else if let submittedTaskIdentifier {
-                BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: submittedTaskIdentifier)
+            } else {
                 clearPendingSession()
                 phase = .idle
+                connectionStage = .idle
             }
         case .active:
             cancellationRequested = true
             restorationStatus = String(localized: "Stop requested; awaiting device response")
             restorationDisplayStartDate = .now
             phase = .stopping
-            backgroundTask?.updateTitle(
-                "WrapPin",
-                subtitle: "Restoring real location…"
-            )
             if let activeSession {
                 wp_location_session_cancel(activeSession)
             }
@@ -560,108 +545,14 @@ final class LocalDeviceSessionCoordinator: NSObject {
     }
 
     private func submitLocationTask() {
-        guard let pendingSession, resolvedService != nil else {
+        guard pendingSession != nil, resolvedService != nil else {
             fail("WrapPin could not prepare the selected location.")
             return
         }
 
         phase = .connecting
-        connectionStage = .waitingForSystem
-        let identifier = "\(Self.taskIdentifierPrefix).\(UUID().uuidString)"
-        let wasRegistered = BGTaskScheduler.shared.register(
-            forTaskWithIdentifier: identifier,
-            using: .main
-        ) { [weak self] task in
-            guard let task = task as? BGContinuedProcessingTask else {
-                task.setTaskCompleted(success: false)
-                return
-            }
-
-            MainActor.assumeIsolated {
-                guard let self else {
-                    task.setTaskCompleted(success: false)
-                    return
-                }
-                self.beginLocationSession(with: task)
-            }
-        }
-
-        guard wasRegistered else {
-            fail("iOS could not prepare the location session. Close WrapPin, reopen it, and try again.")
-            return
-        }
-
-        submittedTaskIdentifier = identifier
-        let request = BGContinuedProcessingTaskRequest(
-            identifier: identifier,
-            title: "WrapPin",
-            subtitle: "Connecting to \(pendingSession.target.name)…"
-        )
-        request.strategy = .queue
-
-        Task {
-            do {
-                try await BGTaskScheduler.shared.submitTaskRequest(request)
-            } catch {
-                guard self.submittedTaskIdentifier == identifier, self.phase == .connecting else { return }
-                self.schedulerFailureReason = SchedulerFailureReason.classify(error)
-                self.lastFailureStage = .schedulerSubmission
-                self.lastFailureDisposition = .recoverable
-                self.onRecoveryNeeded?(.schedulerSubmission)
-                BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: identifier)
-                self.submittedTaskIdentifier = nil
-                self.resolvedService = nil
-                if self.isMobileDataStartupMode {
-                    self.enterMobileDataGuidance()
-                } else if self.hasRequestedLocalDevVPNThisAttempt {
-                    self.phase = .discovering
-                    self.showConnectionHelp()
-                } else {
-                    self.openLocalDevVPNForPendingSession()
-                }
-            }
-        }
-    }
-
-    private func beginLocationSession(with task: BGContinuedProcessingTask) {
-        guard phase == .connecting, !workerIsRunning else {
-            task.setTaskCompleted(success: false)
-            return
-        }
-
-        backgroundTask = task
-        backgroundTaskFinished = false
-        task.progress.totalUnitCount = 5_760
-        task.progress.completedUnitCount = 1
-        task.expirationHandler = { [weak self] in
-            Task { @MainActor in
-                self?.locationTaskExpired()
-            }
-        }
-        startBackgroundProgress(for: task)
         connectionStage = .openingSecureSession
-
         runNativeLocationSession()
-    }
-
-    private func startBackgroundProgress(for task: BGContinuedProcessingTask) {
-        backgroundProgressTask?.cancel()
-        backgroundProgressTask = Task { @MainActor [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(15))
-                guard
-                    !Task.isCancelled,
-                    let self,
-                    self.backgroundTask === task,
-                    !self.backgroundTaskFinished
-                else { return }
-
-                task.progress.completedUnitCount = min(
-                    task.progress.completedUnitCount + 1,
-                    task.progress.totalUnitCount - 1
-                )
-            }
-        }
     }
 
     private func runNativeLocationSession() {
@@ -738,17 +629,15 @@ final class LocalDeviceSessionCoordinator: NSObject {
         guard workerIsRunning, !cancellationRequested, let target = pendingSession?.target else { return }
         mobileDataDiscoveryLoopTask?.cancel()
         mobileDataDiscoveryLoopTask = nil
+        backgroundKeepAlive.start()
         phase = .active(target)
+        connectionStage = .active
         if let event = retryTelemetry.becameActive() {
             onConnectionEvent?(event)
         }
         if mobileDataGuidance == .turnOff {
             mobileDataGuidance = .turnBackOn
         }
-        backgroundTask?.updateTitle(
-            "WrapPin",
-            subtitle: "Location active at \(target.name)"
-        )
     }
 
     private func nativeLocationFinished(
@@ -760,6 +649,7 @@ final class LocalDeviceSessionCoordinator: NSObject {
         activeRunIdentifier = nil
         activeSession = nil
         workerIsRunning = false
+        backgroundKeepAlive.stop()
 
         if let pendingFailureMessage {
             self.pendingFailureMessage = nil
@@ -768,7 +658,6 @@ final class LocalDeviceSessionCoordinator: NSObject {
             phase = .failed(pendingFailureMessage)
             connectionStage = .failed
             lastFailureMessage = pendingFailureMessage
-            finishBackgroundTask(success: false)
             return
         }
 
@@ -779,7 +668,6 @@ final class LocalDeviceSessionCoordinator: NSObject {
                 restorationStatus = String(localized: "Stop not confirmed; real location unverified")
                 clearPendingSession()
                 phase = .failed(message)
-                finishBackgroundTask(success: false)
                 return
             }
             if restorationDisplayStartDate != nil {
@@ -796,7 +684,6 @@ final class LocalDeviceSessionCoordinator: NSObject {
             clearPendingSession()
             phase = .idle
             connectionStage = .idle
-            finishBackgroundTask(success: true)
         case .failure(let message):
             if isRecoverableTunnelConnectionFailure(message) {
                 let stage = FailureStage.classify(message, fallback: .locationUnknown)
@@ -804,7 +691,6 @@ final class LocalDeviceSessionCoordinator: NSObject {
                 lastFailureDisposition = .recoverable
                 onRecoveryNeeded?(stage)
                 resolvedService = nil
-                finishBackgroundTask(success: false)
                 if isMobileDataStartupMode {
                     enterMobileDataGuidance()
                 } else if hasRequestedLocalDevVPNThisAttempt {
@@ -822,33 +708,11 @@ final class LocalDeviceSessionCoordinator: NSObject {
             phase = .failed(localizedMessage)
             connectionStage = .failed
             lastFailureMessage = localizedMessage
-            finishBackgroundTask(success: false)
         }
-    }
-
-    private func locationTaskExpired() {
-        if case .active = phase {
-            restorationDisplayStartDate = .now
-            restorationStatus = String(localized: "Stop requested; awaiting device response")
-        }
-        cancellationRequested = true
-        pendingFailureMessage = nil
-        mobileDataGuidance = nil
-        phase = .stopping
-        connectionStage = .restoringRealLocation
-
-        if let activeSession {
-            wp_location_session_cancel(activeSession)
-        } else {
-            clearPendingSession()
-            phase = .idle
-            connectionStage = .idle
-        }
-
-        finishBackgroundTask(success: false)
     }
 
     private func fail(_ message: String) {
+        backgroundKeepAlive.stop()
         let localizedMessage = NSLocalizedString(message, comment: "")
         lastFailureMessage = localizedMessage
         connectionStage = .failed
@@ -865,7 +729,6 @@ final class LocalDeviceSessionCoordinator: NSObject {
         }
 
         phase = .failed(localizedMessage)
-        finishBackgroundTask(success: false)
     }
 
     private func cleanupDiscovery() {
@@ -1038,19 +901,9 @@ final class LocalDeviceSessionCoordinator: NSObject {
         cleanupDiscovery()
         pendingSession = nil
         resolvedService = nil
-        submittedTaskIdentifier = nil
+        backgroundKeepAlive.stop()
         hasRequestedLocalDevVPNThisAttempt = false
         isMobileDataStartupMode = false
-    }
-
-    private func finishBackgroundTask(success: Bool) {
-        guard !backgroundTaskFinished else { return }
-        backgroundTaskFinished = true
-        backgroundProgressTask?.cancel()
-        backgroundProgressTask = nil
-        backgroundTask?.setTaskCompleted(success: success)
-        backgroundTask = nil
-        submittedTaskIdentifier = nil
     }
 
     private func finishCancelledLocationSession() {
@@ -1060,7 +913,6 @@ final class LocalDeviceSessionCoordinator: NSObject {
 
         guard remaining > 0 else {
             phase = .idle
-            finishBackgroundTask(success: true)
             return
         }
 
@@ -1068,7 +920,6 @@ final class LocalDeviceSessionCoordinator: NSObject {
             try? await Task.sleep(for: .seconds(remaining))
             guard let self, !self.workerIsRunning, self.phase == .stopping else { return }
             self.phase = .idle
-            self.finishBackgroundTask(success: true)
         }
     }
 

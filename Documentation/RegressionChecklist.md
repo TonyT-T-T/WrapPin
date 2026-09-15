@@ -16,6 +16,7 @@ Use this checklist before packaging an IPA or declaring a development build stab
 ## Pairing
 
 - [ ] Pair This iPhone starts without crashing.
+- [ ] Pairing continues after switching to Settings and does not require a `BGTaskScheduler` registration.
 - [ ] The six-digit PIN is readable and accepted by iOS Settings.
 - [ ] Successful pairing persists after relaunch.
 - [ ] Import Existing File accepts a valid pairing record.
@@ -50,8 +51,10 @@ Use this checklist before packaging an IPA or declaring a development build stab
 - [ ] With LocalDevVPN disconnected, WrapPin opens it quickly and resumes automatically.
 - [ ] Selecting another place and tapping Update Location changes the active location without restarting the flow.
 - [ ] The active location persists while using another app.
+- [ ] The first active session requests Location access and Connection Health reports the background-session state accurately.
+- [ ] With Location access denied, foreground simulation still starts and Connection Health explains that background continuity is unavailable.
 - [ ] Stop & Restore requires confirmation, then restores the real location.
-- [ ] The Dynamic Island activity has no accidental stop button.
+- [ ] The blue background-location indicator appears only while a simulation is active and disappears after Stop & Restore.
 
 ## Fixed location on mobile data
 
@@ -92,7 +95,7 @@ Use this checklist before packaging an IPA or declaring a development build stab
 
 - [ ] Automatic, Light and Dark update the Settings screen immediately.
 - [ ] Standard, Satellite and Hybrid update the map.
-- [ ] Connection Health reports pairing, LocalDevVPN and location-session state accurately.
+- [ ] Connection Health reports pairing, LocalDevVPN, location-session and background-session state accurately.
 - [ ] Feedback links open the correct Bug Report and Feature Request forms.
 - [ ] Share Diagnostics opens the iOS share sheet and contains no keys or PINs.
 - [ ] About WrapPin describes the current controls and flows.

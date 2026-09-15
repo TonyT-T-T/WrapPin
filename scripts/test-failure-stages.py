@@ -22,10 +22,10 @@ checks = [
  'precondition(FailureDisposition.recoverable.event == .connectionRecoveryNeeded)',
 ]
 coordinator = (root / 'WrapPin/Services/Tunnel/LocalDeviceSessionCoordinator.swift').read_text()
-assert 'self.onRecoveryNeeded?(.schedulerSubmission)' in coordinator
 assert 'onRecoveryNeeded?(stage)' in coordinator
 assert 'onFailure?(stage)' in coordinator
 assert 'self.onFailure?(.schedulerSubmission)' not in coordinator
+assert 'submitTaskRequest' not in coordinator
 for message in messages:
     checks.append('precondition(FailureStage.classify(' + json.dumps(message) + ', fallback: .locationUnknown) != .locationUnknown)')
 checks += [

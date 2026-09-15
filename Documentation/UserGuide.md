@@ -39,7 +39,7 @@ There is no separate confirmation step after choosing a location.
 
 To move an active session, choose another place and tap **Update Location**. WrapPin keeps the existing secure session and changes the location directly.
 
-Tap **Stop & Restore** when you want iOS to return to the real location, then confirm the choice. Keep WrapPin open while it restores the real location. WrapPin deliberately does not place a stop control in the Dynamic Island, which helps prevent accidental stops while using another app.
+Tap **Stop & Restore** when you want iOS to return to the real location, then confirm the choice. Keep WrapPin open while it restores the real location.
 
 ## Wi-Fi connection flow
 
@@ -116,7 +116,7 @@ Settings offers automatic, light and dark appearance plus standard, satellite an
 
 ## Background sessions
 
-An active location session uses an iOS continued-processing task so it can remain reliable while WrapPin is in the background. iOS shows this task in the Dynamic Island and controls its presentation. You can swipe it up to keep it compact, but WrapPin continues to report task progress so iOS can keep the session running reliably.
+An active location session uses iOS Location Services only as a background keep-alive; the coordinates still come from the native developer simulation service and are never read or stored by the keep-alive. Allow Location access when iOS asks. The blue background-location indicator may appear while a simulation is active. If access is denied, foreground simulation can still work, but continuity after switching apps is not guaranteed. **Settings → Connection Health → Background Session** shows the current keep-alive state.
 
 ## Anonymous usage statistics
 

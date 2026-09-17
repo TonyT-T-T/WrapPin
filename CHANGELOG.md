@@ -4,6 +4,8 @@ All notable public changes to WrapPin are recorded here.
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-09-17
+
 ### Improved
 
 - Kept on-device pairing alive while switching to Settings without making pairing depend on `BGTaskScheduler` registration.
@@ -68,7 +70,8 @@ First stable WrapPin release, based on Roam Control 0.9.2 Beta 3 and maintained 
 - Unsigned Release build and IPA integrity checks pass for version `1.0.0` Build `1`.
 - Earlier candidates passed physical-device installation and core usage testing; the final 1.0 package should still be installed once before public release.
 
-[Unreleased]: https://github.com/suversal/WrapPin/commits/main
+[Unreleased]: https://github.com/suversal/WrapPin/compare/v1.0.6...HEAD
+[1.0.6]: https://github.com/suversal/WrapPin/releases/tag/v1.0.6
 [1.0.5]: https://github.com/suversal/WrapPin/releases/tag/v1.0.5
 [1.0.4]: https://github.com/suversal/WrapPin/releases/tag/v1.0.4
 [1.0.3]: https://github.com/suversal/WrapPin/releases/tag/v1.0.3

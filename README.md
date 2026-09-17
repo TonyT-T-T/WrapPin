@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <strong>当前版本：</strong>1.0.5（Build 6） · <strong>系统要求：</strong>iOS 27+
+  <strong>当前版本：</strong>1.0.6（Build 9） · <strong>系统要求：</strong>iOS 27+
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/iOS-27%2B-blue" alt="iOS 27+">
   <img src="https://img.shields.io/badge/UI-SwiftUI-orange" alt="SwiftUI">
   <img src="https://img.shields.io/badge/%E7%BB%B4%E6%8A%A4%E8%80%85-suversal-purple" alt="由 suversal 维护">
-  <img src="https://img.shields.io/badge/Version-1.0.5-lightgrey" alt="Version 1.0.5">
+  <img src="https://img.shields.io/badge/Version-1.0.6-lightgrey" alt="Version 1.0.6">
   <img src="https://img.shields.io/badge/License-PolyForm%20NC%201.0.0-blue" alt="PolyForm Noncommercial 1.0.0">
 </p>
 
@@ -34,13 +34,13 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 
 ## 当前进展
 
-- 当前公开版本为 **1.0.5（Build 6）**。
+- 当前公开版本为 **1.0.6（Build 9）**。
 - 已完成完整简体中文界面、地图标签本地化、配对与连接引导、中文安装文档和使用手册。
 - 已完善地址与坐标复制、连接检测、诊断信息复制、异常会话恢复和真实位置恢复流程。
-- 已修复长时间本机配对容易中断，以及误连 USB/Wi-Fi `169.254.x.x` 链路本地地址的问题；已优先使用 LocalDevVPN 端点。
+- 配对和定位启动不再依赖可能受 SideStore 重签 Bundle ID 影响的 `BGTaskScheduler`，并优先使用 LocalDevVPN 端点。
 - 已使用正式 Xcode Release Archive 流程生成并校验可供 SideStore 签名的未签名 IPA。
 - 已验证前台固定位置、模拟步行和停止恢复流程；长时间锁屏保持仍需更多机型和系统版本测试。
-- 1.0.5 改善了国内外地图选点的地址解析，修复“正在查找附近地址…”被保存到历史记录的问题，并在无法获取地址时显示精确经纬度。
+- 1.0.6 改善了切换到系统设置时的配对连续性、切换 App 后的定位保持，并在“连接检测”中增加后台会话状态。
 
 ## 界面预览
 

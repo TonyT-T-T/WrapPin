@@ -1,5 +1,21 @@
 # WrapPin releases
 
+## 1.0.6 (Build 9)
+
+- Created: 17 September 2026
+- Package: `WrapPin-1.0.6-build9.ipa`
+- Build: optimized unsigned Xcode Release Archive, arm64 iPhone executable
+- Requires: iOS 27.0 or later
+- Xcode: 27.0 (`27A266a`)
+- Distribution: unsigned IPA for SideStore or another user-side signing tool
+- SHA-256: `3ac594075b005162bcd3bd7521400b5d96cceeb7db046882060c0f1bc3a0d499`
+- Changes: removes the SideStore-sensitive `BGTaskScheduler` dependency from pairing and location startup, adds a Core Location background keep-alive for active simulations, and reports background-session health in Connection Health.
+- Verification: localization, native failure classification, background-session lifecycle, Xcode Release Archive, IPA payload, version, architecture, unsigned state, privacy manifest and legal resources were checked. Basic SideStore physical-device testing found no major problem; more affected-device coverage remains welcome.
+- Known issue: this release does not change map coordinates or claim to fix the previously observed walking or mainland-China map offset.
+- Publication: GitHub Release `v1.0.6`.
+
+See [the 1.0.6 build notes](../Documentation/Release-1.0.6.md) for details.
+
 ## 1.0.5 (Build 6)
 
 - Created: 15 September 2026

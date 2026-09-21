@@ -23,7 +23,7 @@ When sharing is enabled, the app may count:
 
 - A participating installation opening the app or returning it to the foreground.
 - Onboarding or pairing being completed.
-- A fixed-location or walking session successfully starting.
+- A fixed-location, walking or driving session successfully starting.
 - A location being updated during an active session.
 - The app version and build associated with an event.
 - An approximate event time added by TelemetryDeck.

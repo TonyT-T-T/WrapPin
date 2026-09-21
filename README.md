@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <strong>当前版本：</strong>1.0.6（Build 9） · <strong>系统要求：</strong>iOS 27+
+  <strong>当前版本：</strong>1.0.7（Build 11） · <strong>系统要求：</strong>iOS 27+
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/iOS-27%2B-blue" alt="iOS 27+">
   <img src="https://img.shields.io/badge/UI-SwiftUI-orange" alt="SwiftUI">
   <img src="https://img.shields.io/badge/%E7%BB%B4%E6%8A%A4%E8%80%85-suversal-purple" alt="由 suversal 维护">
-  <img src="https://img.shields.io/badge/Version-1.0.6-lightgrey" alt="Version 1.0.6">
+  <img src="https://img.shields.io/badge/Version-1.0.7-lightgrey" alt="Version 1.0.7">
   <img src="https://img.shields.io/badge/License-PolyForm%20NC%201.0.0-blue" alt="PolyForm Noncommercial 1.0.0">
 </p>
 
@@ -28,19 +28,19 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 
 如果这个项目帮到了你，欢迎点一个 **Star**；如果你发现界面、文案、兼容性或连接流程还有改进空间，也欢迎提交 Issue 或 Pull Request。贡献前请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-项目面向开发、质量测试和个人负责任测试，支持固定位置、步行路线、收藏与历史记录，并通过本机配对和 LocalDevVPN 建立安全的开发者定位会话。
+项目面向开发、质量测试和个人负责任测试，支持固定位置、步行与驾车路线、收藏与历史记录，并通过本机配对和 LocalDevVPN 建立安全的开发者定位会话。
 
 > 请只在你拥有并控制的设备上使用。不要用于欺骗他人、伪造证据、规避安全限制，或违反第三方服务规则。
 
 ## 当前进展
 
-- 当前公开版本为 **1.0.6（Build 9）**。
+- 当前公开版本为 **1.0.7（Build 11）**。
 - 已完成完整简体中文界面、地图标签本地化、配对与连接引导、中文安装文档和使用手册。
 - 已完善地址与坐标复制、连接检测、诊断信息复制、异常会话恢复和真实位置恢复流程。
 - 配对和定位启动不再依赖可能受 SideStore 重签 Bundle ID 影响的 `BGTaskScheduler`，并优先使用 LocalDevVPN 端点。
 - 已使用正式 Xcode Release Archive 流程生成并校验可供 SideStore 签名的未签名 IPA。
 - 已验证前台固定位置、模拟步行和停止恢复流程；长时间锁屏保持仍需更多机型和系统版本测试。
-- 1.0.6 改善了切换到系统设置时的配对连续性、切换 App 后的定位保持，并在“连接检测”中增加后台会话状态。
+- 1.0.7 增加驾车路线预览和自定义模拟速度；此前的配对与后台定位改进仍保留。
 
 ## 界面预览
 
@@ -48,7 +48,7 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 <img width="3372" height="2406" alt="image" src="https://github.com/user-attachments/assets/256c6a1e-8d54-4cf5-8aa3-5dd18b0573c2" />
 
 <p align="center">
-  <sub>模拟固定位置 · 模拟步行路线</sub>
+  <sub>模拟固定位置 · 模拟步行与驾车路线</sub>
 </p>
 
 > 以上为真实功能截图，个别英文或旧名称与当前版本不同；功能布局基本一致，实际界面会跟随系统语言。后续将用 WrapPin 中文真机截图替换。
@@ -58,7 +58,7 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 - 使用 Apple 地图搜索地点、输入经纬度，或直接轻点地图选点。
 - 一键复制所选地点的可读地址或经纬度坐标。
 - 启动固定位置后直接更换坐标，无需重新建立整条连接。
-- 预览 Apple 地图步行路线，并设置步行速度。
+- 预览 Apple 地图步行或驾车路线，并设置对应的模拟速度。
 - 在步行期间暂停、继续、原路返回或更换目的地。
 - 保存常用地点，快速访问最近使用的位置。
 - 会话结束时主动清除模拟坐标并恢复真实位置。
@@ -72,7 +72,7 @@ WrapPin 走的是 iOS 的**开发者位置模拟通道**，不是通过代理伪
 
 ```mermaid
 flowchart TD
-    A[在 WrapPin 中选择坐标或步行路线] --> B[读取保存在本机钥匙串中的 RPPairing 记录]
+    A[在 WrapPin 中选择坐标或路线] --> B[读取保存在本机钥匙串中的 RPPairing 记录]
     B --> C[通过 LocalDevVPN 发现同一台 iPhone 的远程配对服务]
     C --> D[校验设备身份并建立加密开发者隧道]
     D --> E[连接 iOS LocationSimulation 服务]
@@ -183,11 +183,17 @@ WrapPin 暂未通过 App Store 或 TestFlight 分发。第一阶段以 GitHub Re
 
 ## 模拟步行路线
 
-1. 选择目的地，轻点“预览步行路线”。
+1. 选择目的地，轻点“预览步行”。
 2. 检查 Apple 地图返回的路线、距离、预计用时和到达时间。
 3. 选择步行速度，轻点“开始模拟步行”。
 4. 步行期间可以暂停、继续、原路返回，或在保持连接的情况下更换目的地。
 5. 结束时使用“停止模拟并恢复”，不要只强制退出 App。
+
+## 模拟驾车路线
+
+1. 选择目的地，轻点“预览驾车”，确认路线经过的道路。
+2. 在预览中设置 5–240 公里/小时的匀速模拟速度，再轻点“开始模拟驾车”。预计用时按模拟速度计算，并非实时路况预测。
+3. 行进中可暂停或继续；到达后模拟位置会留在目的地。结束时轻点“停止模拟并恢复”，确认真实位置已恢复。
 
 ## Wi-Fi 与蜂窝网络
 

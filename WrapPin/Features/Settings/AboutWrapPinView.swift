@@ -82,7 +82,7 @@ struct AboutWrapPinView: View {
 
             Section("Walking routes") {
                 guideRow(
-                    "Preview Walking Route",
+                    "Preview Walk",
                     symbol: "figure.walk",
                     text: "Ask Apple Maps for a walking route from your current point to the selected destination before anything starts."
                 )
@@ -115,6 +115,24 @@ struct AboutWrapPinView: View {
                     "Stop & Restore",
                     symbol: "stop.fill",
                     text: "Stop walking, clear the route and restore the real location. A confirmation helps prevent accidental stops."
+                )
+            }
+
+            Section("Driving routes") {
+                guideRow(
+                    "Preview Drive",
+                    symbol: "car.fill",
+                    text: "Ask Apple Maps for a road route before starting a simulated drive."
+                )
+                guideRow(
+                    "Simulated speed",
+                    symbol: "speedometer",
+                    text: "Set a constant speed from 5 to 240 km/h. Travel time uses this speed, not live traffic."
+                )
+                guideRow(
+                    "Stop & Restore",
+                    symbol: "stop.fill",
+                    text: "End the route and confirm that this iPhone's real location has returned."
                 )
             }
 
@@ -186,7 +204,7 @@ struct AboutWrapPinView: View {
             stepRow(1, "Pair this iPhone once.")
             stepRow(2, "Connect LocalDevVPN.")
             stepRow(3, "Search, choose or drop a location.")
-            stepRow(4, "Start a fixed location or preview a walking route.")
+            stepRow(4, "Start a fixed location or preview a walking or driving route.")
         } header: {
             Text("How it works")
         } footer: {

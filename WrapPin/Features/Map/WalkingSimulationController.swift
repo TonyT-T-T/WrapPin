@@ -39,6 +39,8 @@ final class WalkingSimulationController {
     private(set) var distanceTravelled: CLLocationDistance = 0
     private(set) var totalDistance: CLLocationDistance = 0
     var pace: WalkingPace = .normal
+    private(set) var mode: RouteMode = .walking
+    var drivingSpeedKilometresPerHour: Double = 80
 
     @ObservationIgnored
     private var routePoints: [MKMapPoint] = []
@@ -61,7 +63,11 @@ final class WalkingSimulationController {
     }
 
     var remainingDuration: TimeInterval {
-        remainingDistance / pace.metresPerSecond
+        remainingDistance / speedMetresPerSecond
+    }
+
+    var speedMetresPerSecond: Double {
+        mode == .walking ? pace.metresPerSecond : drivingSpeedKilometresPerHour / 3.6
     }
 
     var locksDestination: Bool {
@@ -73,9 +79,10 @@ final class WalkingSimulationController {
         }
     }
 
-    func prepare(route: MKRoute, destination: LocationTarget) {
+    func prepare(route: MKRoute, destination: LocationTarget, mode: RouteMode = .walking) {
         movementTask?.cancel()
         movementTask = nil
+        self.mode = mode
 
         let polyline = route.polyline
         let points = polyline.points()
@@ -100,11 +107,12 @@ final class WalkingSimulationController {
         }
         phase = routePoints.count >= 2
             ? .idle
-            : .failed(String(localized: "This walking route does not contain enough detail to simulate movement."))
+            : .failed(String(localized: "This route does not contain enough detail to simulate movement."))
     }
 
     func prepareReturnTrip() -> LocationTarget? {
         guard
+            mode == .walking,
             phase == .arrived,
             let returnDestination = routeStart,
             let previousDestination = destination,
@@ -131,7 +139,7 @@ final class WalkingSimulationController {
             phase == .idle || isFailed
         else { return }
         guard case .paired = appModel.pairingStatus else {
-            phase = .failed(String(localized: "Pair this iPhone before starting a walking session."))
+            phase = .failed(String(localized: "Pair this iPhone before starting a route session."))
             return
         }
 
@@ -140,14 +148,15 @@ final class WalkingSimulationController {
         currentCoordinate = routePoints[0].coordinate
         phase = .preparing
 
-        await appModel.startWalkingLocationSession(
+        await appModel.startRouteLocationSession(
             at: movementTarget(at: routePoints[0].coordinate, destination: destination),
             destination: destination,
-            paceMetresPerSecond: pace.metresPerSecond
+            mode: mode,
+            speedMetresPerSecond: speedMetresPerSecond
         )
 
         if case .idle = appModel.deviceSession.phase, phase == .preparing {
-            phase = .failed(String(localized: "WrapPin could not start the walking session."))
+            phase = .failed(String(localized: "WrapPin could not start the route session."))
         }
     }
 
@@ -253,11 +262,11 @@ final class WalkingSimulationController {
 
                 self.distanceTravelled = min(
                     self.totalDistance,
-                    self.distanceTravelled + (self.pace.metresPerSecond * elapsed)
+                    self.distanceTravelled + (self.speedMetresPerSecond * elapsed)
                 )
 
                 guard let coordinate = self.coordinate(at: self.distanceTravelled) else {
-                    self.phase = .failed(String(localized: "WrapPin could not follow this walking route."))
+                    self.phase = .failed(String(localized: "WrapPin could not follow this route."))
                     return
                 }
 
@@ -268,7 +277,7 @@ final class WalkingSimulationController {
                     : self.movementTarget(at: coordinate, destination: destination)
 
                 guard deviceSession.updateLocation(target) == .updated else {
-                    self.phase = .failed(String(localized: "The active location session ended before the walk finished."))
+                    self.phase = .failed(String(localized: "The active location session ended before the route finished."))
                     return
                 }
 
@@ -300,9 +309,17 @@ final class WalkingSimulationController {
         if distance <= 0 { return first.coordinate }
         if distance >= totalDistance { return routePoints.last?.coordinate }
 
-        guard let upperIndex = cumulativeDistances.firstIndex(where: { $0 >= distance }) else {
-            return routePoints.last?.coordinate
+        var lower = 1
+        var upper = cumulativeDistances.count - 1
+        while lower < upper {
+            let middle = (lower + upper) / 2
+            if cumulativeDistances[middle] < distance {
+                lower = middle + 1
+            } else {
+                upper = middle
+            }
         }
+        let upperIndex = lower
         let lowerIndex = max(upperIndex - 1, 0)
         let lowerDistance = cumulativeDistances[lowerIndex]
         let upperDistance = cumulativeDistances[upperIndex]
@@ -323,8 +340,14 @@ final class WalkingSimulationController {
         destination: LocationTarget
     ) -> LocationTarget {
         LocationTarget(
-            name: "Walking to \(destination.name)",
-            subtitle: "\(Int((progress * 100).rounded()))% complete",
+            name: String(
+                format: NSLocalizedString(mode == .walking ? "Walking to %@" : "Driving to %@", comment: ""),
+                destination.name
+            ),
+            subtitle: String(
+                format: NSLocalizedString("%lld%% complete", comment: ""),
+                Int((progress * 100).rounded())
+            ),
             latitude: coordinate.latitude,
             longitude: coordinate.longitude
         )

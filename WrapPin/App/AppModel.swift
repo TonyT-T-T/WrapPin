@@ -334,19 +334,21 @@ final class AppModel {
         )
     }
 
-    func startWalkingLocationSession(
+    func startRouteLocationSession(
         at initialTarget: LocationTarget,
         destination: LocationTarget,
-        paceMetresPerSecond: Double
+        mode: RouteMode,
+        speedMetresPerSecond: Double
     ) async {
         await startLocationSession(
             at: initialTarget,
             selectedTarget: destination,
             historyTarget: destination,
-            recovery: .walking(
+            recovery: .route(
                 from: initialTarget,
                 to: destination,
-                paceMetresPerSecond: paceMetresPerSecond
+                mode: mode,
+                speedMetresPerSecond: speedMetresPerSecond
             )
         )
     }
@@ -393,9 +395,11 @@ final class AppModel {
                 )
                 return
             }
-            pendingSessionAnalyticsEvent = recovery.kind == .walkingRoute
-                ? .walkingStarted
-                : .fixedLocationStarted
+            switch recovery.kind {
+            case .walkingRoute: pendingSessionAnalyticsEvent = .walkingStarted
+            case .drivingRoute: pendingSessionAnalyticsEvent = .drivingStarted
+            case .fixedLocation: pendingSessionAnalyticsEvent = .fixedLocationStarted
+            }
             deviceSession.start(pairingRecord: pairingRecord, target: deviceTarget)
         } catch {
             activeSessionRecovery = nil
@@ -593,7 +597,7 @@ final class AppModel {
         let now = Date.now
 
         if
-            recovery.kind == .walkingRoute,
+            recovery.isRoute,
             let destination = recovery.destination,
             destination.id == target.id
         {

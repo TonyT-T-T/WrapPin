@@ -44,7 +44,7 @@ struct SessionRecoveryView: View {
             Button("Restore Real Location", role: .destructive, action: onRestore)
             Button("Keep Recovery Options", role: .cancel) {}
         } message: {
-            Text("WrapPin will reconnect only long enough to clear the simulated location. It will not start a new location or walking session.")
+            Text("WrapPin will reconnect only long enough to clear the simulated location. It will not start a new route session.")
         }
     }
 
@@ -68,7 +68,7 @@ struct SessionRecoveryView: View {
                         height: dynamicTypeSize.isAccessibilitySize ? 66 : 78
                     )
 
-                Image(systemName: recovery.isWalkingRoute ? "figure.walk.motion" : "location.fill")
+                Image(systemName: recovery.isRoute ? recovery.routeMode.symbol : "location.fill")
                     .font(.system(size: 31, weight: .semibold))
                     .foregroundStyle(.white)
             }
@@ -86,14 +86,14 @@ struct SessionRecoveryView: View {
 
             VStack(spacing: 10) {
                 recoveryDetail(
-                    title: recovery.isWalkingRoute
+                    title: recovery.isRoute
                         ? String(localized: "Last saved point")
                         : String(localized: "Last location"),
                     value: recovery.lastReportedLocation.name,
                     symbol: "mappin.and.ellipse"
                 )
 
-                if let destination = recovery.destination, recovery.isWalkingRoute {
+                if let destination = recovery.destination, recovery.isRoute {
                     recoveryDetail(
                         title: String(localized: "Destination"),
                         value: destination.name,
@@ -126,7 +126,7 @@ struct SessionRecoveryView: View {
                     .foregroundStyle(.secondary)
             } else {
                 Button(action: onResume) {
-                    Label(resumeTitle, systemImage: recovery.isWalkingRoute ? "figure.walk" : "arrow.clockwise")
+                    Label(resumeTitle, systemImage: recovery.isRoute ? recovery.routeMode.symbol : "arrow.clockwise")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
@@ -172,10 +172,13 @@ struct SessionRecoveryView: View {
     }
 
     private var summaryText: String {
-        if let destination = recovery.destination, recovery.isWalkingRoute {
+        if let destination = recovery.destination, recovery.isRoute {
+            let key = recovery.routeMode == .walking
+                ? "WrapPin closed before it could confirm that the simulated walk to %@ ended. Continue from the last saved point or restore this iPhone's real location."
+                : "WrapPin closed before it could confirm that the simulated drive to %@ ended. Continue from the last saved point or restore this iPhone's real location."
             return String(
                 format: NSLocalizedString(
-                    "WrapPin closed before it could confirm that the simulated walk to %@ ended. Continue from the last saved point or restore this iPhone's real location.",
+                    key,
                     comment: ""
                 ),
                 destination.name
@@ -192,9 +195,12 @@ struct SessionRecoveryView: View {
     }
 
     private var resumeTitle: String {
-        recovery.isWalkingRoute
-            ? String(localized: "Resume Walking")
-            : String(localized: "Resume Location")
+        if recovery.isRoute {
+            return recovery.routeMode == .walking
+                ? String(localized: "Resume Walking")
+                : String(localized: "Resume Driving")
+        }
+        return String(localized: "Resume Location")
     }
 
     private func recoveryDetail(title: String, value: String, symbol: String) -> some View {

@@ -4,17 +4,27 @@ struct SessionRecoveryRecord: Codable, Equatable {
     enum Kind: String, Codable {
         case fixedLocation
         case walkingRoute
+        case drivingRoute
     }
 
     var kind: Kind
     var lastReportedLocation: LocationTarget
     var destination: LocationTarget?
     var walkingPaceMetresPerSecond: Double?
+    var routeSpeedMetresPerSecond: Double?
     let startedAt: Date
     var updatedAt: Date
 
-    var isWalkingRoute: Bool {
-        kind == .walkingRoute && destination != nil
+    var isRoute: Bool {
+        (kind == .walkingRoute || kind == .drivingRoute) && destination != nil
+    }
+
+    var routeMode: RouteMode {
+        kind == .drivingRoute ? .driving : .walking
+    }
+
+    var savedRouteSpeed: Double? {
+        routeSpeedMetresPerSecond ?? walkingPaceMetresPerSecond
     }
 
     static func fixed(at target: LocationTarget) -> SessionRecoveryRecord {
@@ -23,21 +33,24 @@ struct SessionRecoveryRecord: Codable, Equatable {
             lastReportedLocation: target,
             destination: nil,
             walkingPaceMetresPerSecond: nil,
+            routeSpeedMetresPerSecond: nil,
             startedAt: .now,
             updatedAt: .now
         )
     }
 
-    static func walking(
+    static func route(
         from start: LocationTarget,
         to destination: LocationTarget,
-        paceMetresPerSecond: Double
+        mode: RouteMode,
+        speedMetresPerSecond: Double
     ) -> SessionRecoveryRecord {
         SessionRecoveryRecord(
-            kind: .walkingRoute,
+            kind: mode == .walking ? .walkingRoute : .drivingRoute,
             lastReportedLocation: start,
             destination: destination,
-            walkingPaceMetresPerSecond: paceMetresPerSecond,
+            walkingPaceMetresPerSecond: nil,
+            routeSpeedMetresPerSecond: speedMetresPerSecond,
             startedAt: .now,
             updatedAt: .now
         )

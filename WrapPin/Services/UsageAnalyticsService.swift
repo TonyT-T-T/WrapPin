@@ -14,6 +14,7 @@ enum UsageAnalyticsEvent: String {
     case pairingFailed = "WrapPin.Pairing.Failed"
     case fixedLocationStarted = "WrapPin.Location.fixedStarted"
     case walkingStarted = "WrapPin.Location.walkingStarted"
+    case drivingStarted = "WrapPin.Location.drivingStarted"
     case activeLocationUpdated = "WrapPin.Location.activeUpdated"
     case locationPreparationFailed = "WrapPin.Location.PreparationFailed"
     case locationRestoreFailed = "WrapPin.Location.RestoreFailed"

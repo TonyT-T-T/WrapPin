@@ -285,7 +285,7 @@ private struct OnboardingPage {
         OnboardingPage(
             symbol: "location.viewfinder",
             title: "Welcome to WrapPin",
-            message: "Search for a place or tap the map, then start a fixed location or preview a walking route.",
+            message: "Search for a place or tap the map, then start a fixed location or preview a walking or driving route.",
             color: .blue
         ),
         OnboardingPage(

@@ -11,11 +11,11 @@ struct LocationSelectionCard: View {
     let isPaired: Bool
     let sessionPhase: DeviceSessionPhase
     let localDevVPNInstallURL: URL
-    let isPreviewingWalkingRoute: Bool
-    let walkingRouteError: String?
+    let previewingRouteMode: RouteMode?
+    let routeError: String?
     let onToggleFavourite: () -> Void
     let onClearSelection: () -> Void
-    let onPreviewWalkingRoute: () -> Void
+    let onPreviewRoute: (RouteMode) -> Void
     let onStart: () -> Void
     let onStop: () -> Void
 
@@ -71,30 +71,22 @@ struct LocationSelectionCard: View {
                 .tint(isShowingActiveTarget ? .red : .blue)
                 .disabled(isPrimaryDisabled)
 
-                if canPreviewWalkingRoute {
-                    Button(action: onPreviewWalkingRoute) {
-                        HStack(spacing: 8) {
-                            if isPreviewingWalkingRoute {
-                                ProgressView()
-                                    .controlSize(.small)
-                            } else {
-                                Image(systemName: "figure.walk")
-                            }
-                            Text(
-                                isPreviewingWalkingRoute
-                                    ? String(localized: "Planning Walking Route…")
-                                    : String(localized: "Preview Walking Route")
-                            )
+                if canPreviewRoute {
+                    if dynamicTypeSize.isAccessibilitySize {
+                        VStack(spacing: 8) {
+                            routePreviewButton(for: .walking)
+                            routePreviewButton(for: .driving)
                         }
-                        .frame(maxWidth: .infinity)
+                    } else {
+                        HStack(spacing: 8) {
+                            routePreviewButton(for: .walking)
+                            routePreviewButton(for: .driving)
+                        }
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .disabled(isPreviewingWalkingRoute)
                 }
 
-                if let walkingRouteError {
-                    Text(walkingRouteError)
+                if let routeError {
+                    Text(routeError)
                         .font(.caption)
                         .foregroundStyle(.red)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -140,6 +132,24 @@ struct LocationSelectionCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+    }
+
+    private func routePreviewButton(for mode: RouteMode) -> some View {
+        Button { onPreviewRoute(mode) } label: {
+            HStack(spacing: 6) {
+                if previewingRouteMode == mode {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Image(systemName: mode.symbol)
+                }
+                Text(mode == .walking ? String(localized: "Preview Walk") : String(localized: "Preview Drive"))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.bordered)
+        .disabled(previewingRouteMode != nil)
     }
 
     @ViewBuilder
@@ -338,7 +348,7 @@ struct LocationSelectionCard: View {
         }
     }
 
-    private var canPreviewWalkingRoute: Bool {
+    private var canPreviewRoute: Bool {
         guard !isResolvingAddress else { return false }
         return switch sessionPhase {
         case .idle, .active:

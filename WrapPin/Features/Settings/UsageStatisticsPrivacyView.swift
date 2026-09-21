@@ -21,7 +21,7 @@ struct UsageStatisticsPrivacyView: View {
                 privacyRow("Connection help, retry and retry success counts", symbol: "arrow.clockwise")
                 privacyRow("Fixed failure stage, scheduler reason, operation and recovery category", symbol: "exclamationmark.triangle")
                 privacyRow("Pairing completed", symbol: "iphone.and.arrow.forward")
-                privacyRow("Fixed or walking session started", symbol: "figure.walk")
+                privacyRow("Fixed, walking or driving session started", symbol: "point.topleft.down.to.point.bottomright.curvepath")
                 privacyRow("Active location updated", symbol: "location.fill")
             }
 

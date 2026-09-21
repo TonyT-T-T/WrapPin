@@ -32,14 +32,14 @@ struct WalkingRoutePreviewCard: View {
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .shadow(color: .black.opacity(0.15), radius: 18, y: 8)
         .confirmationDialog(
-            "Stop walking and restore this iPhone's real location?",
+            "Stop the route and restore this iPhone's real location?",
             isPresented: $isConfirmingStop,
             titleVisibility: .visible
         ) {
             Button("Stop & Restore", role: .destructive, action: onStop)
             Button("Keep Simulated Location", role: .cancel) {}
         } message: {
-            Text("WrapPin will end the simulated walk and restore your real location. Your route progress will be reset.")
+            Text("WrapPin will end the simulated route and restore your real location. Your route progress will be reset.")
         }
     }
 
@@ -71,7 +71,7 @@ struct WalkingRoutePreviewCard: View {
                             .frame(width: 44, height: 44)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Close walking route")
+                    .accessibilityLabel("Close route")
                 }
             }
 
@@ -83,7 +83,11 @@ struct WalkingRoutePreviewCard: View {
             routeMetrics
 
             if canChoosePace {
-                pacePicker
+                if simulation.mode == .walking {
+                    pacePicker
+                } else {
+                    drivingSpeedControl
+                }
             }
 
             controls
@@ -110,6 +114,24 @@ struct WalkingRoutePreviewCard: View {
         }
     }
 
+    private var drivingSpeedControl: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("Simulated speed")
+                    .font(.subheadline.weight(.medium))
+                Spacer()
+                Text(drivingSpeedText)
+                    .font(.subheadline.monospacedDigit().weight(.semibold))
+            }
+            Slider(value: drivingSpeedBinding, in: 5...240, step: 5)
+                .accessibilityLabel("Simulated driving speed")
+                .accessibilityValue(drivingSpeedText)
+            Text("Constant route speed · 5–240 km/h")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
     @ViewBuilder
     private var routeMetrics: some View {
         let distance = RouteMetric(
@@ -118,13 +140,13 @@ struct WalkingRoutePreviewCard: View {
             symbol: "point.topleft.down.to.point.bottomright.curvepath"
         )
         let duration = RouteMetric(
-            title: simulation.phase == .arrived ? String(localized: "Status") : String(localized: "Walking"),
+            title: simulation.phase == .arrived ? String(localized: "Status") : String(localized: "Travel time"),
             value: durationText,
             symbol: simulation.phase == .arrived ? "checkmark.circle" : "clock"
         )
         let arrival = RouteMetric(
             title: String(localized: "Arrive"),
-            value: arrivalText,
+            value: simulation.phase == .paused ? String(localized: "Paused") : arrivalText,
             symbol: "flag.checkered"
         )
 
@@ -148,7 +170,10 @@ struct WalkingRoutePreviewCard: View {
         switch simulation.phase {
         case .idle:
             Button(action: onStart) {
-                Label("Start Walking", systemImage: "figure.walk.motion")
+                Label(
+                    simulation.mode == .walking ? String(localized: "Start Walking") : String(localized: "Start Driving"),
+                    systemImage: simulation.mode.symbol
+                )
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -158,7 +183,9 @@ struct WalkingRoutePreviewCard: View {
         case .preparing:
             HStack(spacing: 10) {
                 ProgressView()
-                Text("Starting walking session…")
+                Text(simulation.mode == .walking
+                     ? String(localized: "Starting walking session…")
+                     : String(localized: "Starting driving session…"))
                     .font(.subheadline.weight(.medium))
             }
             .frame(maxWidth: .infinity)
@@ -179,12 +206,14 @@ struct WalkingRoutePreviewCard: View {
             }
 
         case .arrived:
-            Button(action: onWalkBack) {
-                Label("Walk Route Back", systemImage: "arrow.uturn.backward")
-                    .frame(maxWidth: .infinity)
+            if simulation.mode == .walking {
+                Button(action: onWalkBack) {
+                    Label("Walk Route Back", systemImage: "arrow.uturn.backward")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
 
             Group {
                 if dynamicTypeSize.isAccessibilitySize {
@@ -248,7 +277,7 @@ struct WalkingRoutePreviewCard: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
-                .accessibilityLabel("Stop walking and restore real location")
+                .accessibilityLabel("Stop route and restore real location")
     }
 
     private var newLocationButton: some View {
@@ -285,7 +314,7 @@ struct WalkingRoutePreviewCard: View {
             Text(
                 isPaired
                     ? String(localized: "Your location will move along this route at the selected pace.")
-                    : String(localized: "Pair this iPhone before starting a walking session.")
+                    : String(localized: "Pair this iPhone before starting a route session.")
             )
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -300,14 +329,14 @@ struct WalkingRoutePreviewCard: View {
                 .fixedSize(horizontal: false, vertical: true)
 
         case .walking:
-            Text("Keep WrapPin running. You can use other apps while the walk continues.")
+            Text("Keep WrapPin running. You can use other apps while the route continues.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .fixedSize(horizontal: false, vertical: true)
 
         case .paused:
-            Text("Your spoofed location is being held here until you resume.")
+            Text("Your simulated location will stay here until you resume the route.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -365,13 +394,13 @@ struct WalkingRoutePreviewCard: View {
 
     private var phaseTitle: String {
         switch simulation.phase {
-        case .idle: String(localized: "Walking route")
-        case .preparing: String(localized: "Preparing walk")
-        case .walking: String(localized: "Walking")
-        case .paused: String(localized: "Walk paused")
+        case .idle: simulation.mode.title
+        case .preparing: simulation.mode == .walking ? String(localized: "Preparing walk") : String(localized: "Preparing drive")
+        case .walking: simulation.mode == .walking ? String(localized: "Walking") : String(localized: "Driving")
+        case .paused: simulation.mode == .walking ? String(localized: "Walk paused") : String(localized: "Drive paused")
         case .arrived: String(localized: "Arrived")
-        case .stopping: String(localized: "Ending walk")
-        case .failed: String(localized: "Walking unavailable")
+        case .stopping: String(localized: "Ending route")
+        case .failed: String(localized: "Route unavailable")
         }
     }
 
@@ -400,7 +429,7 @@ struct WalkingRoutePreviewCard: View {
 
     private var phaseSymbol: String {
         switch simulation.phase {
-        case .idle, .preparing, .walking: "figure.walk"
+        case .idle, .preparing, .walking: simulation.mode.symbol
         case .paused: "pause.circle.fill"
         case .arrived: "checkmark.circle.fill"
         case .stopping: "location.slash.fill"
@@ -420,6 +449,20 @@ struct WalkingRoutePreviewCard: View {
         Binding(
             get: { simulation.pace },
             set: { simulation.pace = $0 }
+        )
+    }
+
+    private var drivingSpeedBinding: Binding<Double> {
+        Binding(
+            get: { simulation.drivingSpeedKilometresPerHour },
+            set: { simulation.drivingSpeedKilometresPerHour = $0 }
+        )
+    }
+
+    private var drivingSpeedText: String {
+        String(
+            format: NSLocalizedString("%lld km/h", comment: ""),
+            Int(simulation.drivingSpeedKilometresPerHour.rounded())
         )
     }
 
@@ -454,7 +497,7 @@ struct WalkingRoutePreviewCard: View {
         guard simulation.phase != .arrived else { return String(localized: "Complete") }
         let duration = simulation.totalDistance > 0
             ? simulation.remainingDuration
-            : route.expectedTravelTime
+            : route.distance / simulation.speedMetresPerSecond
         return formatDuration(duration)
     }
 
@@ -462,7 +505,7 @@ struct WalkingRoutePreviewCard: View {
         guard simulation.phase != .arrived else { return String(localized: "Now") }
         let duration = simulation.totalDistance > 0
             ? simulation.remainingDuration
-            : route.expectedTravelTime
+            : route.distance / simulation.speedMetresPerSecond
         return Date.now
             .addingTimeInterval(duration)
             .formatted(date: .omitted, time: .shortened)

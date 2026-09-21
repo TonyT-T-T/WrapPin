@@ -1,6 +1,6 @@
 # 驾车路线模拟调研
 
-调研分支：`codex/driving-route-research`。本文件只记录现有实现、可行方案和验收点，尚未实现驾车模拟，也未进行真机验证。
+调研分支：`codex/driving-route-research`。本文件记录开发前的调研；本分支已按 [驾车路线设计方案](DrivingRouteDesign.zh-CN.md) 开始实现，真机验证仍未完成。
 
 ## 结论
 

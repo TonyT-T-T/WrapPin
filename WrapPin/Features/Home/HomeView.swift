@@ -17,6 +17,7 @@ struct HomeView: View {
     @State private var visibleMapCamera: MapCamera?
     @State private var isPreparingRecoveredWalk = false
     @State private var recoveredWalkError: String?
+    @State private var followsSimulatedLocation = false
     @FocusState private var isSearchFocused: Bool
 
     init(
@@ -46,8 +47,8 @@ struct HomeView: View {
                     }
 
                     if let coordinate = walkingSimulation.currentCoordinate {
-                        Annotation("Walking location", coordinate: coordinate) {
-                            Image(systemName: "figure.walk.circle.fill")
+                        Annotation("Simulated route location", coordinate: coordinate) {
+                            Image(systemName: walkingSimulation.mode == .walking ? "figure.walk.circle.fill" : "car.circle.fill")
                                 .font(.title.weight(.semibold))
                                 .foregroundStyle(.white, .green)
                                 .padding(4)
@@ -181,6 +182,29 @@ struct HomeView: View {
                     Spacer()
 
                     VStack(spacing: 10) {
+                        if walkingSimulation.mode == .driving,
+                           let coordinate = walkingSimulation.currentCoordinate,
+                           let route = walkingRoutePlanner.route {
+                            Button {
+                                followsSimulatedLocation.toggle()
+                                if followsSimulatedLocation {
+                                    mapModel.center(on: coordinate)
+                                } else {
+                                    mapModel.show(route)
+                                }
+                            } label: {
+                                Image(systemName: followsSimulatedLocation ? "car.fill" : "car")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(followsSimulatedLocation ? .blue : .primary)
+                                    .frame(width: 44, height: 44)
+                                    .background(.regularMaterial, in: Circle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(followsSimulatedLocation
+                                ? "Show whole route"
+                                : "Follow simulated car")
+                        }
+
                         if shouldShowMapCompass {
                             Button(action: resetMapHeading) {
                                 CompassRoseDial()
@@ -229,6 +253,7 @@ struct HomeView: View {
                         simulation: walkingSimulation,
                         isPaired: isPaired,
                         onStart: {
+                            followsSimulatedLocation = walkingSimulation.mode == .driving
                             Task { await walkingSimulation.start(using: appModel) }
                         },
                         onTogglePause: walkingSimulation.togglePause,
@@ -260,8 +285,8 @@ struct HomeView: View {
                         isPaired: isPaired,
                         sessionPhase: appModel.deviceSession.phase,
                         localDevVPNInstallURL: appModel.localDevVPNInstallURL,
-                        isPreviewingWalkingRoute: walkingRoutePlanner.isLoading,
-                        walkingRouteError: walkingRoutePlanner.errorMessage,
+                        previewingRouteMode: walkingRoutePlanner.isLoading ? walkingRoutePlanner.mode : nil,
+                        routeError: walkingRoutePlanner.errorMessage,
                         onToggleFavourite: {
                             guard !mapModel.isResolvingAddress else { return }
                             guard let target = mapModel.selectedLocation else { return }
@@ -272,12 +297,12 @@ struct HomeView: View {
                             walkingRoutePlanner.clear()
                             mapModel.clearSelectedLocation()
                         },
-                        onPreviewWalkingRoute: {
+                        onPreviewRoute: { mode in
                             guard !mapModel.isResolvingAddress else { return }
                             guard let target = mapModel.selectedLocation else { return }
                             Task {
-                                if let route = await walkingRoutePlanner.preview(to: target) {
-                                    walkingSimulation.prepare(route: route, destination: target)
+                                if let route = await walkingRoutePlanner.preview(to: target, mode: mode) {
+                                    walkingSimulation.prepare(route: route, destination: target, mode: mode)
                                     mapModel.show(route)
                                 }
                             }
@@ -433,6 +458,12 @@ struct HomeView: View {
                 mapModel.showRealLocationAfterSession()
             }
         }
+        .onChange(of: walkingSimulation.distanceTravelled) { _, _ in
+            guard followsSimulatedLocation,
+                  walkingSimulation.mode == .driving,
+                  let coordinate = walkingSimulation.currentCoordinate else { return }
+            mapModel.center(on: coordinate)
+        }
         .onChange(of: mapModel.selectedLocation?.id) { _, selectedLocationID in
             guard !walkingSimulation.locksDestination else { return }
             guard let destination = walkingRoutePlanner.destination else { return }
@@ -575,7 +606,7 @@ struct HomeView: View {
     private func resumeInterruptedSession(_ recovery: SessionRecoveryRecord) {
         recoveredWalkError = nil
 
-        guard recovery.isWalkingRoute, let destination = recovery.destination else {
+        guard recovery.isRoute, let destination = recovery.destination else {
             appModel.dismissInterruptedSessionRecovery()
             mapModel.show(recovery.lastReportedLocation)
             Task { await appModel.startLocationSession(at: recovery.lastReportedLocation) }
@@ -586,24 +617,27 @@ struct HomeView: View {
         Task { @MainActor in
             let route = await walkingRoutePlanner.preview(
                 to: destination,
-                from: recovery.lastReportedLocation
+                from: recovery.lastReportedLocation,
+                mode: recovery.routeMode
             )
             guard let route else {
                 recoveredWalkError = walkingRoutePlanner.errorMessage
-                    ?? String(localized: "The remaining walking route could not be prepared.")
+                    ?? String(localized: "The remaining route could not be prepared.")
                 isPreparingRecoveredWalk = false
                 return
             }
 
             appModel.dismissInterruptedSessionRecovery()
-            walkingSimulation.prepare(route: route, destination: destination)
-            if
-                let rawPace = recovery.walkingPaceMetresPerSecond,
-                let recoveredPace = WalkingPace(rawValue: rawPace)
-            {
-                walkingSimulation.pace = recoveredPace
+            walkingSimulation.prepare(route: route, destination: destination, mode: recovery.routeMode)
+            if let savedSpeed = recovery.savedRouteSpeed, savedSpeed.isFinite {
+                if recovery.routeMode == .walking, let recoveredPace = WalkingPace(rawValue: savedSpeed) {
+                    walkingSimulation.pace = recoveredPace
+                } else if recovery.routeMode == .driving {
+                    walkingSimulation.drivingSpeedKilometresPerHour = min(max(savedSpeed * 3.6, 5), 240)
+                }
             }
             mapModel.show(route)
+            followsSimulatedLocation = recovery.routeMode == .driving
             isPreparingRecoveredWalk = false
             await walkingSimulation.start(using: appModel)
         }

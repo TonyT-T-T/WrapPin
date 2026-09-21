@@ -150,9 +150,13 @@ final class MapViewModel: NSObject, MKLocalSearchCompleterDelegate {
     }
 
     func center(on target: LocationTarget) {
+        center(on: target.coordinate)
+    }
+
+    func center(on coordinate: CLLocationCoordinate2D) {
         cameraPosition = .region(
             MKCoordinateRegion(
-                center: target.coordinate,
+                center: coordinate,
                 span: MKCoordinateSpan(latitudeDelta: 0.025, longitudeDelta: 0.025)
             )
         )

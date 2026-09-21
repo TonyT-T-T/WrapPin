@@ -1,6 +1,6 @@
 # WrapPin User Guide
 
-WrapPin lets you choose where your iPhone reports its location. You can hold one fixed place or simulate a walk along an Apple Maps route.
+WrapPin lets you choose where your iPhone reports its location. You can hold one fixed place or simulate movement along an Apple Maps walking or driving route.
 
 ## First-time setup
 
@@ -67,7 +67,7 @@ Only startup needs this temporary change. After the secure location session is a
 ## Walking routes
 
 1. Choose a destination.
-2. Tap **Preview Walking Route**.
+2. Tap **Preview Walk**.
 3. Check the route, distance, estimated time and arrival time.
 4. Choose a walking pace.
 5. Tap **Start Walking**.
@@ -86,6 +86,10 @@ At the destination:
 - **Stop & Restore** ends the session and restores the real location.
 
 For UK regional settings, short distances are shown in yards and longer distances in miles.
+
+## Driving routes
+
+Choose a destination and tap **Preview Drive**. Check the road route, then set a constant simulated speed between 5 and 240 km/h before tapping **Start Driving**. The displayed travel time uses that simulated speed, not live traffic. You can pause or resume during the route. At the destination, the simulated position stays active until you tap **Stop & Restore** and confirm that your real location has returned. The app does not reverse driving routes because one-way roads may make the reverse path invalid.
 
 ## Map controls
 
@@ -122,7 +126,7 @@ An active location session uses iOS Location Services only as a background keep-
 
 The final introduction page shows **Share Anonymous Usage Statistics** before setup completes. It is off by default and sends nothing unless you choose to switch it on. The choice can be changed at any time under **Settings → Privacy**.
 
-When enabled, WrapPin reports only a small fixed list of activity counts: the app opening or returning to the foreground, app version/build, completed onboarding or pairing, starting a fixed or walking session, updating an already-active location, connection-help prompts, manual retries and successful sessions after retry, and fixed failure-stage, scheduler-reason, operation and recoverable/terminal categories (pairing, location or restoration). No raw error messages are sent. TelemetryDeck adds an approximate event time. WrapPin never includes coordinates, place names, searches, favourites, history, routes, pairing records, PINs, Apple ID, device name or diagnostics.
+When enabled, WrapPin reports only a small fixed list of activity counts: the app opening or returning to the foreground, app version/build, completed onboarding or pairing, starting a fixed, walking or driving session, updating an already-active location, connection-help prompts, manual retries and successful sessions after retry, and fixed failure-stage, scheduler-reason, operation and recoverable/terminal categories (pairing, location or restoration). No raw error messages are sent. TelemetryDeck adds an approximate event time. WrapPin never includes coordinates, place names, searches, favourites, history, routes, pairing records, PINs, Apple ID, device name or diagnostics.
 
 A random installation identifier is stored in local app storage and irreversibly hashed before sending. No per-launch session identifier is sent. Turning sharing off stops future reporting immediately and removes the local identifier, but it cannot withdraw anonymous events already received by TelemetryDeck. TelemetryDeck says it does not store IP addresses and may retain anonymous events for roughly 7–10 years without guaranteeing an exact deletion date. Counts therefore describe participating installations rather than every installation.
 
@@ -151,7 +155,7 @@ The saved pairing record belongs to a different device announcement. Toggle Loca
 
 Keep WrapPin open for a few seconds while iOS obtains a fresh GPS result. Tap the current-location button after it becomes available. Also check that Location Services permission is allowed for WrapPin.
 
-### A walking session ended unexpectedly
+### A route session ended unexpectedly
 
 Reopen WrapPin and use the interrupted-session screen. Resume from the last saved point or choose **Restore Real Location**.
 

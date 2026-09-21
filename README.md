@@ -28,7 +28,7 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 
 如果这个项目帮到了你，欢迎点一个 **Star**；如果你发现界面、文案、兼容性或连接流程还有改进空间，也欢迎提交 Issue 或 Pull Request。贡献前请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-项目面向开发、质量测试和个人负责任测试，支持固定位置、步行路线、收藏与历史记录，并通过本机配对和 LocalDevVPN 建立安全的开发者定位会话。
+项目面向开发、质量测试和个人负责任测试，支持固定位置、步行与驾车路线、收藏与历史记录，并通过本机配对和 LocalDevVPN 建立安全的开发者定位会话。
 
 > 请只在你拥有并控制的设备上使用。不要用于欺骗他人、伪造证据、规避安全限制，或违反第三方服务规则。
 
@@ -48,7 +48,7 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 <img width="3372" height="2406" alt="image" src="https://github.com/user-attachments/assets/256c6a1e-8d54-4cf5-8aa3-5dd18b0573c2" />
 
 <p align="center">
-  <sub>模拟固定位置 · 模拟步行路线</sub>
+  <sub>模拟固定位置 · 模拟步行与驾车路线</sub>
 </p>
 
 > 以上为真实功能截图，个别英文或旧名称与当前版本不同；功能布局基本一致，实际界面会跟随系统语言。后续将用 WrapPin 中文真机截图替换。
@@ -58,7 +58,7 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 - 使用 Apple 地图搜索地点、输入经纬度，或直接轻点地图选点。
 - 一键复制所选地点的可读地址或经纬度坐标。
 - 启动固定位置后直接更换坐标，无需重新建立整条连接。
-- 预览 Apple 地图步行路线，并设置步行速度。
+- 预览 Apple 地图步行或驾车路线，并设置对应的模拟速度。
 - 在步行期间暂停、继续、原路返回或更换目的地。
 - 保存常用地点，快速访问最近使用的位置。
 - 会话结束时主动清除模拟坐标并恢复真实位置。
@@ -72,7 +72,7 @@ WrapPin 走的是 iOS 的**开发者位置模拟通道**，不是通过代理伪
 
 ```mermaid
 flowchart TD
-    A[在 WrapPin 中选择坐标或步行路线] --> B[读取保存在本机钥匙串中的 RPPairing 记录]
+    A[在 WrapPin 中选择坐标或路线] --> B[读取保存在本机钥匙串中的 RPPairing 记录]
     B --> C[通过 LocalDevVPN 发现同一台 iPhone 的远程配对服务]
     C --> D[校验设备身份并建立加密开发者隧道]
     D --> E[连接 iOS LocationSimulation 服务]
@@ -183,11 +183,17 @@ WrapPin 暂未通过 App Store 或 TestFlight 分发。第一阶段以 GitHub Re
 
 ## 模拟步行路线
 
-1. 选择目的地，轻点“预览步行路线”。
+1. 选择目的地，轻点“预览步行”。
 2. 检查 Apple 地图返回的路线、距离、预计用时和到达时间。
 3. 选择步行速度，轻点“开始模拟步行”。
 4. 步行期间可以暂停、继续、原路返回，或在保持连接的情况下更换目的地。
 5. 结束时使用“停止模拟并恢复”，不要只强制退出 App。
+
+## 模拟驾车路线
+
+1. 选择目的地，轻点“预览驾车”，确认路线经过的道路。
+2. 在预览中设置 5–240 公里/小时的匀速模拟速度，再轻点“开始模拟驾车”。预计用时按模拟速度计算，并非实时路况预测。
+3. 行进中可暂停或继续；到达后模拟位置会留在目的地。结束时轻点“停止模拟并恢复”，确认真实位置已恢复。
 
 ## Wi-Fi 与蜂窝网络
 

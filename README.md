@@ -35,6 +35,7 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 ## 当前进展
 
 - 当前公开版本为 **1.0.8（Build 15）**；下载以 [GitHub Releases](https://github.com/suversal/WrapPin/releases/tag/v1.0.8) 为准。
+- 1.0.8 首发 IPA 曾有 SideStore 安装失败报告；现已替换为用户确认可在 iPhone 安装的重打包文件，Release 仅保留一份 IPA。完整隧道功能矩阵仍待验收。
 - 已完成完整简体中文界面、地图标签本地化、配对与连接引导、中文安装文档和使用手册。
 - 已完善地址与坐标复制、连接检测、诊断信息复制、异常会话恢复和真实位置恢复流程。
 - 配对和定位启动不再依赖可能受 SideStore 重签 Bundle ID 影响的 `BGTaskScheduler`，并优先使用 LocalDevVPN 端点。

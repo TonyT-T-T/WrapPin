@@ -125,7 +125,6 @@
 "WGS84 unchanged" = "WGS84 unchanged";
 "For mainland China, try GCJ-02 first. If the position is off, switch to WGS84." = "For mainland China, try GCJ-02 first. If the position is off, switch to WGS84.";
 "Outside mainland China, try WGS84 first. If the position is off, switch to GCJ-02." = "Outside mainland China, try WGS84 first. If the position is off, switch to GCJ-02.";
-"AMap uses GCJ-02; Baidu Maps uses BD-09." = "AMap uses GCJ-02; Baidu Maps uses BD-09.";
 "地图选点" = "Map selection";
 "模拟目标" = "Simulation target";
 "定位回调" = "Location callback";

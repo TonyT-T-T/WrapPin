@@ -167,11 +167,6 @@ struct LocationSelectionCard: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text("AMap uses GCJ-02; Baidu Maps uses BD-09.")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
             if isShowingActiveTarget {
                 Text("Switching modes updates the current simulated location immediately.")
                     .font(.caption)

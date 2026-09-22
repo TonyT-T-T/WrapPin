@@ -362,7 +362,6 @@
 "Drive paused" = "驾车已暂停";
 "Ending route" = "正在结束路线模拟";
 "Route unavailable" = "路线模拟不可用";
-"Close route" = "关闭路线";
 "Stop route and restore real location" = "停止路线模拟并恢复真实位置";
 "Stop the route and restore this iPhone's real location?" = "要停止路线模拟并恢复本机真实位置吗？";
 "WrapPin will end the simulated route and restore your real location. Your route progress will be reset." = "WrapPin 将结束路线模拟并恢复真实位置，当前进度会被清除。";
@@ -467,8 +466,6 @@
 "Updates" = "版本更新";
 "Check for Updates" = "检查更新";
 "Checking for Updates…" = "正在检查更新…";
-"Checks the public GitHub release only when you tap it. WrapPin never sends location, pairing or diagnostic data with this request." = "只有主动检查更新时才会访问 GitHub，不会发送位置、配对或诊断数据。";
-"Install %@" = "查看并安装 %@";
 "A newer public release is available: %@." = "发现新版本：%@。";
 "You have the latest public release (%@)." = "当前已是最新公开版本（%@）。";
 "View public release %@" = "查看公开版本 %@";
@@ -647,6 +644,12 @@
 "WGS84 unchanged" = "WGS84 原样";
 "For mainland China, try GCJ-02 first. If the position is off, switch to WGS84." = "中国大陆可先试 GCJ-02；位置有偏差就切换 WGS84。";
 "Outside mainland China, try WGS84 first. If the position is off, switch to GCJ-02." = "中国大陆以外可先试 WGS84；位置有偏差就切换 GCJ-02。";
+"WrapPin %@ is available." = "WrapPin %@ 已发布。";
+"View release and download" = "查看版本并下载";
+"Dismiss update reminder" = "关闭更新提醒";
+"Close route preview" = "关闭路线预览";
+"View release %@" = "查看版本 %@";
+"WrapPin checks the latest public GitHub release when it opens. You can check again here. Location, pairing and diagnostic data are not sent with this request." = "WrapPin 启动时会检查 GitHub 上最新的正式版，也可在此手动重查。请求不会发送位置、配对或诊断数据。";
 "地图选点" = "地图选点";
 "模拟目标" = "模拟目标";
 "定位回调" = "定位回调";

@@ -5,6 +5,7 @@ struct WrapPinApp: App {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
     @State private var appModel = AppModel()
+    @State private var releaseUpdates = ReleaseUpdateModel()
 
     var body: some Scene {
         WindowGroup {
@@ -15,6 +16,7 @@ struct WrapPinApp: App {
                             || shouldShowDeviceSetupInitially,
                         showSettingsInitially: shouldShowSettingsInitially
                     )
+                    .task { await releaseUpdates.checkOnLaunch() }
                     .transition(.opacity)
                 } else {
                     OnboardingView()
@@ -22,6 +24,7 @@ struct WrapPinApp: App {
                 }
             }
                 .environment(appModel)
+                .environment(releaseUpdates)
                 .preferredColorScheme(preferredColorScheme)
                 .animation(
                     reduceMotion ? nil : .easeInOut(duration: 0.25),

@@ -15,6 +15,7 @@ struct SettingsView: View {
     )!
 
     @Environment(AppModel.self) private var appModel
+    @Environment(ReleaseUpdateModel.self) private var releaseUpdates
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .body) private var xLogoSize: CGFloat = 25
@@ -22,7 +23,6 @@ struct SettingsView: View {
     @State private var isReplayingOnboarding = false
     @State private var isConfirmingReset = false
     @State private var resetError: String?
-    @State private var releaseUpdateStatus: ReleaseUpdateStatus = .idle
 
     var body: some View {
         NavigationStack {
@@ -131,7 +131,7 @@ struct SettingsView: View {
 
                 Section {
                     Button {
-                        Task { await checkForUpdates() }
+                        Task { await releaseUpdates.checkForUpdates() }
                     } label: {
                         Label {
                             Text(updateCheckTitle)
@@ -139,13 +139,13 @@ struct SettingsView: View {
                             settingsRowIcon(updateCheckSymbol)
                         }
                     }
-                    .disabled(releaseUpdateStatus == .checking)
+                    .disabled(releaseUpdates.status == .checking)
 
                     updateStatusDetail
                 } header: {
                     Text("Updates")
                 } footer: {
-                    Text("Checks the public GitHub release only when you tap it. WrapPin never sends location, pairing or diagnostic data with this request.")
+                    Text("WrapPin checks the latest public GitHub release when it opens. You can check again here. Location, pairing and diagnostic data are not sent with this request.")
                 }
 
                 Section {
@@ -380,26 +380,26 @@ struct SettingsView: View {
     }
 
     private var updateCheckTitle: String {
-        switch releaseUpdateStatus {
+        switch releaseUpdates.status {
         case .checking: String(localized: "Checking for Updates…")
         default: String(localized: "Check for Updates")
         }
     }
 
     private var updateCheckSymbol: String {
-        releaseUpdateStatus == .checking ? "arrow.triangle.2.circlepath" : "arrow.down.circle"
+        releaseUpdates.status == .checking ? "arrow.triangle.2.circlepath" : "arrow.down.circle"
     }
 
     @ViewBuilder
     private var updateStatusDetail: some View {
-        switch releaseUpdateStatus {
+        switch releaseUpdates.status {
         case .idle, .checking:
             EmptyView()
         case .updateAvailable(let release):
             Link(destination: release.releaseURL) {
                 Label(
                     String(
-                        format: NSLocalizedString("Install %@", comment: ""),
+                        format: NSLocalizedString("View release %@", comment: ""),
                         release.version
                     ),
                     systemImage: "arrow.up.right.square"
@@ -453,26 +453,6 @@ struct SettingsView: View {
         }
     }
 
-    @MainActor
-    private func checkForUpdates() async {
-        releaseUpdateStatus = .checking
-
-        do {
-            let release = try await ReleaseUpdateChecker().latestRelease()
-            if VersionComparison.isRemoteVersionNewer(release.version, than: versionText) {
-                releaseUpdateStatus = .updateAvailable(release)
-            } else if VersionComparison.isRemoteVersionNewer(versionText, than: release.version) {
-                releaseUpdateStatus = .newerLocalBuild(release)
-            } else {
-                releaseUpdateStatus = .current(release)
-            }
-        } catch ReleaseUpdateCheckError.noPublishedRelease {
-            releaseUpdateStatus = .noPublishedRelease
-        } catch {
-            releaseUpdateStatus = .unavailable
-        }
-    }
-
     private var isShowingResetError: Binding<Bool> {
         Binding(
             get: { resetError != nil },
@@ -494,4 +474,5 @@ struct SettingsView: View {
 #Preview {
     SettingsView()
         .environment(AppModel())
+        .environment(ReleaseUpdateModel())
 }

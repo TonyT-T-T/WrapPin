@@ -25,6 +25,21 @@ struct WalkingRoutePreviewCard: View {
         .padding(18)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .shadow(color: .black.opacity(0.15), radius: 18, y: 8)
+        .overlay(alignment: .topTrailing) {
+            if canClose {
+                Button(action: onDone) {
+                    Image(systemName: "xmark")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 44, height: 44)
+                        .background(.quaternary, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close route preview")
+                .padding(.top, 18)
+                .padding(.trailing, 18)
+            }
+        }
         .confirmationDialog(
             "Stop the route and restore this iPhone's real location?",
             isPresented: $isConfirmingStop,
@@ -58,14 +73,9 @@ struct WalkingRoutePreviewCard: View {
                 Spacer(minLength: 0)
 
                 if canClose {
-                    Button(action: onDone) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 44, height: 44)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Close route")
+                    Color.clear
+                        .frame(width: 44, height: 44)
+                        .accessibilityHidden(true)
                 }
             }
 
@@ -87,12 +97,28 @@ struct WalkingRoutePreviewCard: View {
             controls
             footer
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder
     private var pacePicker: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Toggle("Custom walking speed", isOn: customWalkingSpeedEnabled)
+            HStack(spacing: 12) {
+                Text("Custom walking speed")
+                    .font(.subheadline.weight(.medium))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer(minLength: 8)
+
+                Toggle("Custom walking speed", isOn: customWalkingSpeedEnabled)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .fixedSize()
+                    .scaleEffect(0.82, anchor: .trailing)
+                    .frame(width: 56, height: 44, alignment: .trailing)
+                    .accessibilityLabel("Custom walking speed")
+            }
+            .padding(.trailing, 4)
             if simulation.customWalkingSpeedKilometresPerHour != nil {
                 HStack {
                     Text("Walking speed")

@@ -3,6 +3,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(AppModel.self) private var appModel
+    @Environment(ReleaseUpdateModel.self) private var releaseUpdates
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var mapModel = MapViewModel()
@@ -144,6 +145,49 @@ struct HomeView: View {
                         .buttonStyle(.plain)
                         .accessibilityLabel("Settings")
                     }
+                    }
+
+                    if let release = releaseUpdates.visibleRelease {
+                        HStack(spacing: 8) {
+                            Link(destination: release.releaseURL) {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "arrow.down.circle.fill")
+                                        .font(.title3)
+                                        .foregroundStyle(.blue)
+
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(String(
+                                            format: NSLocalizedString("WrapPin %@ is available.", comment: ""),
+                                            release.version
+                                        ))
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(.primary)
+
+                                        Text("View release and download")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(.blue)
+                                    }
+                                    Spacer(minLength: 0)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+
+                            Button(action: releaseUpdates.dismissBanner) {
+                                Image(systemName: "xmark")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 44, height: 44)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Dismiss update reminder")
+                        }
+                        .padding(.leading, 14)
+                        .padding(.trailing, 6)
+                        .padding(.vertical, 6)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
                     }
 
                     if needsPairingPrompt {
@@ -756,4 +800,5 @@ private extension View {
 #Preview {
     HomeView()
         .environment(AppModel())
+        .environment(ReleaseUpdateModel())
 }

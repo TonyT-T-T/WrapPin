@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 struct PublishedRelease: Sendable {
     let version: String
@@ -104,5 +105,53 @@ enum VersionComparison {
         value
             .split(whereSeparator: { !$0.isNumber })
             .compactMap { Int($0) }
+    }
+}
+
+@MainActor
+@Observable
+final class ReleaseUpdateModel {
+    private(set) var status: ReleaseUpdateStatus = .idle
+    private(set) var dismissedReleaseVersion: String?
+    private var hasCheckedOnLaunch = false
+
+    var visibleRelease: PublishedRelease? {
+        guard case let .updateAvailable(release) = status,
+              release.version != dismissedReleaseVersion else { return nil }
+        return release
+    }
+
+    func checkOnLaunch() async {
+        guard !hasCheckedOnLaunch else { return }
+        hasCheckedOnLaunch = true
+        await checkForUpdates()
+    }
+
+    func checkForUpdates() async {
+        guard status != .checking else { return }
+        status = .checking
+
+        do {
+            let release = try await ReleaseUpdateChecker().latestRelease()
+            let installedVersion = Bundle.main.object(
+                forInfoDictionaryKey: "CFBundleShortVersionString"
+            ) as? String ?? "0"
+            if VersionComparison.isRemoteVersionNewer(release.version, than: installedVersion) {
+                status = .updateAvailable(release)
+            } else if VersionComparison.isRemoteVersionNewer(installedVersion, than: release.version) {
+                status = .newerLocalBuild(release)
+            } else {
+                status = .current(release)
+            }
+        } catch ReleaseUpdateCheckError.noPublishedRelease {
+            status = .noPublishedRelease
+        } catch {
+            status = .unavailable
+        }
+    }
+
+    func dismissBanner() {
+        guard case let .updateAvailable(release) = status else { return }
+        dismissedReleaseVersion = release.version
     }
 }

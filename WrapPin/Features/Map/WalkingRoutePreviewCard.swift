@@ -18,8 +18,11 @@ struct WalkingRoutePreviewCard: View {
     @State private var isConfirmingStop = false
 
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
+        ViewThatFits(in: .vertical) {
             cardContent
+            ScrollView(.vertical, showsIndicators: false) {
+                cardContent
+            }
         }
         .frame(maxHeight: 460)
         .padding(18)

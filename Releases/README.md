@@ -1,5 +1,21 @@
 # WrapPin releases
 
+## 1.0.10 (Build 30)
+
+- Created: 22 September 2026
+- Package: `WrapPin-1.0.10-build30.ipa`
+- Build: optimized unsigned Xcode Release Archive, arm64 iPhone executable
+- Requires: iOS 27.0 or later
+- Xcode: 27.0 (`27A266a`)
+- Distribution: unsigned IPA for SideStore or another user-side signing tool
+- SHA-256: `f0b152dd54ec110f45ef206cb4fb910da44afb1794701c3890a9e7c27d0d84e2`
+- Changes: selectable WGS84/GCJ-02 fixed-location modes, compact route preview, automatic public-release check and location callback diagnostics.
+- Verification: source checks, Release Archive and IPA identity/integrity checks passed. Earlier coordinate-mode test builds were exercised on an iPhone; Build 30 has not yet been independently installed or visually checked.
+- Known issues: neither coordinate mode guarantees accurate display everywhere or acceptance by third-party apps; Shadowrocket on cellular may still lack the required device connection.
+- Publication: GitHub Release `v1.0.10`.
+
+See [the 1.0.10 build notes](../Documentation/Release-1.0.10.md) for details.
+
 ## 1.0.9 (Build 18)
 
 - Created: 22 September 2026

@@ -4,6 +4,23 @@ All notable public changes to WrapPin are recorded here.
 
 ## [Unreleased]
 
+## [1.0.10] - 2026-09-22
+
+### Added
+
+- Added a choice between WGS84 and GCJ-02 coordinate handling for fixed location simulation, including map selection and manual coordinate entry. The modes can be switched when a location appears offset.
+- Check the latest public GitHub release on launch and show a dismissible update notice when a newer version is available.
+
+### Improved
+
+- Added an explicit close button and compact controls to walking and driving route previews; sized the card to its content.
+- Kept map controls on the existing material appearance after trying and removing Liquid Glass styling.
+- Added a location callback probe to Connection Health for investigating coordinate mismatches.
+
+### Known limitations
+
+- Neither coordinate mode is guaranteed to match every map display or third-party app. Route simulation and other apps can have separate behavior. The final Build 30 still needs an independent iPhone installation and visual check.
+
 ## [1.0.9] - 2026-09-22
 
 ### Added
@@ -109,7 +126,8 @@ First stable WrapPin release, based on Roam Control 0.9.2 Beta 3 and maintained 
 - Unsigned Release build and IPA integrity checks pass for version `1.0.0` Build `1`.
 - Earlier candidates passed physical-device installation and core usage testing; the final 1.0 package should still be installed once before public release.
 
-[Unreleased]: https://github.com/suversal/WrapPin/compare/v1.0.9...HEAD
+[Unreleased]: https://github.com/suversal/WrapPin/compare/v1.0.10...HEAD
+[1.0.10]: https://github.com/suversal/WrapPin/releases/tag/v1.0.10
 [1.0.9]: https://github.com/suversal/WrapPin/releases/tag/v1.0.9
 [1.0.8]: https://github.com/suversal/WrapPin/releases/tag/v1.0.8
 [1.0.7]: https://github.com/suversal/WrapPin/releases/tag/v1.0.7

@@ -105,44 +105,46 @@ struct HomeView: View {
                 }
 
                 if !isSearchingForLocation {
-                    GlassEffectContainer(spacing: 10) {
                     HStack {
-                    Button {
-                        isShowingDeviceSetup = true
-                    } label: {
-                        ConnectionBadge(state: appModel.connectionState)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("Opens device pairing setup")
-
-                    Spacer()
-
-                    HStack(spacing: 10) {
                         Button {
-                            isShowingSavedPlaces = true
+                            isShowingDeviceSetup = true
                         } label: {
-                            Image(systemName: "heart.text.square.fill")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.primary)
-                                .frame(width: 44, height: 44)
-                                .glassEffect(.regular.interactive(), in: Circle())
+                            ConnectionBadge(state: appModel.connectionState)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("Favourites and history")
+                        .accessibilityHint("Opens device pairing setup")
 
-                        Button {
-                            isShowingSettings = true
-                        } label: {
-                            Image(systemName: "gearshape.fill")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.primary)
-                                .frame(width: 44, height: 44)
-                                .glassEffect(.regular.interactive(), in: Circle())
+                        Spacer()
+
+                        HStack(spacing: 10) {
+                            Button {
+                                isShowingSavedPlaces = true
+                            } label: {
+                                Image(systemName: "heart.text.square.fill")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.primary)
+                                    .frame(width: 36, height: 36)
+                                    .background(.regularMaterial, in: Circle())
+                                    .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
+                                    .frame(width: 44, height: 44)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Favourites and history")
+
+                            Button {
+                                isShowingSettings = true
+                            } label: {
+                                Image(systemName: "gearshape.fill")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.primary)
+                                    .frame(width: 36, height: 36)
+                                    .background(.regularMaterial, in: Circle())
+                                    .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
+                                    .frame(width: 44, height: 44)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Settings")
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Settings")
-                    }
-                    }
                     }
 
                     if let release = releaseUpdates.visibleRelease {

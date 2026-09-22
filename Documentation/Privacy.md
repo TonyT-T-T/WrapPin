@@ -15,6 +15,8 @@ WrapPin does not send:
 
 Pairing records are stored in the device-only Keychain. App preferences and saved places remain in local app storage.
 
+When the app opens, it requests the latest public release metadata from GitHub to check for an update. The request does not include location, pairing or diagnostic data. As with any network request, GitHub can observe connection metadata such as the requesting IP address.
+
 ## Optional anonymous usage statistics
 
 The app offers **Share Anonymous Usage Statistics**. It is off by default. New users see the switch before finishing setup, and nothing is sent unless they affirmatively switch it on. Existing installations keep their previously saved choice when upgrading. The setting can be changed at any time under **Settings → Privacy**.

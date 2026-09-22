@@ -10,6 +10,7 @@ struct SessionRecoveryRecord: Codable, Equatable {
     var kind: Kind
     var lastReportedLocation: LocationTarget
     var destination: LocationTarget?
+    var fixedCoordinateMode: FixedCoordinateMode?
     var walkingPaceMetresPerSecond: Double?
     var routeSpeedMetresPerSecond: Double?
     let startedAt: Date
@@ -27,11 +28,15 @@ struct SessionRecoveryRecord: Codable, Equatable {
         routeSpeedMetresPerSecond ?? walkingPaceMetresPerSecond
     }
 
-    static func fixed(at target: LocationTarget) -> SessionRecoveryRecord {
+    static func fixed(
+        at target: LocationTarget,
+        mode: FixedCoordinateMode
+    ) -> SessionRecoveryRecord {
         SessionRecoveryRecord(
             kind: .fixedLocation,
             lastReportedLocation: target,
             destination: nil,
+            fixedCoordinateMode: mode,
             walkingPaceMetresPerSecond: nil,
             routeSpeedMetresPerSecond: nil,
             startedAt: .now,
@@ -49,6 +54,7 @@ struct SessionRecoveryRecord: Codable, Equatable {
             kind: mode == .walking ? .walkingRoute : .drivingRoute,
             lastReportedLocation: start,
             destination: destination,
+            fixedCoordinateMode: nil,
             walkingPaceMetresPerSecond: nil,
             routeSpeedMetresPerSecond: speedMetresPerSecond,
             startedAt: .now,

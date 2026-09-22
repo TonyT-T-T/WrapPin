@@ -3,6 +3,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(AppModel.self) private var appModel
+    @Environment(ReleaseUpdateModel.self) private var releaseUpdates
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var mapModel = MapViewModel()
@@ -18,6 +19,7 @@ struct HomeView: View {
     @State private var isPreparingRecoveredWalk = false
     @State private var recoveredWalkError: String?
     @State private var followsSimulatedLocation = false
+    @State private var fixedCoordinateMode: FixedCoordinateMode = .wgs84
     @FocusState private var isSearchFocused: Bool
 
     init(
@@ -104,45 +106,88 @@ struct HomeView: View {
 
                 if !isSearchingForLocation {
                     HStack {
-                    Button {
-                        isShowingDeviceSetup = true
-                    } label: {
-                        ConnectionBadge(state: appModel.connectionState)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("Opens device pairing setup")
-
-                    Spacer()
-
-                    HStack(spacing: 10) {
                         Button {
-                            isShowingSavedPlaces = true
+                            isShowingDeviceSetup = true
                         } label: {
-                            Image(systemName: "heart.text.square.fill")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.primary)
-                                .frame(width: 36, height: 36)
-                                .background(.regularMaterial, in: Circle())
-                                .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
-                                .frame(width: 44, height: 44)
+                            ConnectionBadge(state: appModel.connectionState)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("Favourites and history")
+                        .accessibilityHint("Opens device pairing setup")
 
-                        Button {
-                            isShowingSettings = true
-                        } label: {
-                            Image(systemName: "gearshape.fill")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.primary)
-                                .frame(width: 36, height: 36)
-                                .background(.regularMaterial, in: Circle())
-                                .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
-                                .frame(width: 44, height: 44)
+                        Spacer()
+
+                        HStack(spacing: 10) {
+                            Button {
+                                isShowingSavedPlaces = true
+                            } label: {
+                                Image(systemName: "heart.text.square.fill")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.primary)
+                                    .frame(width: 36, height: 36)
+                                    .background(.regularMaterial, in: Circle())
+                                    .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
+                                    .frame(width: 44, height: 44)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Favourites and history")
+
+                            Button {
+                                isShowingSettings = true
+                            } label: {
+                                Image(systemName: "gearshape.fill")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.primary)
+                                    .frame(width: 36, height: 36)
+                                    .background(.regularMaterial, in: Circle())
+                                    .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
+                                    .frame(width: 44, height: 44)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Settings")
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Settings")
                     }
+
+                    if let release = releaseUpdates.visibleRelease {
+                        HStack(spacing: 8) {
+                            Link(destination: release.releaseURL) {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "arrow.down.circle.fill")
+                                        .font(.title3)
+                                        .foregroundStyle(.blue)
+
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(String(
+                                            format: NSLocalizedString("WrapPin %@ is available.", comment: ""),
+                                            release.version
+                                        ))
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(.primary)
+
+                                        Text("View release and download")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(.blue)
+                                    }
+                                    Spacer(minLength: 0)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+
+                            Button(action: releaseUpdates.dismissBanner) {
+                                Image(systemName: "xmark")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 44, height: 44)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Dismiss update reminder")
+                        }
+                        .padding(.leading, 14)
+                        .padding(.trailing, 6)
+                        .padding(.vertical, 6)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
                     }
 
                     if needsPairingPrompt {
@@ -288,6 +333,25 @@ struct HomeView: View {
                         tunnelAppInstallURL: appModel.selectedTunnelAppInstallURL,
                         previewingRouteMode: walkingRoutePlanner.isLoading ? walkingRoutePlanner.mode : nil,
                         routeError: walkingRoutePlanner.errorMessage,
+                        coordinateMode: fixedCoordinateMode,
+                        recommendedCoordinateMode: mapModel.selectedLocation.map(
+                            FixedCoordinateMode.recommended
+                        ) ?? .wgs84,
+                        onCoordinateModeChange: { mode in
+                            fixedCoordinateMode = mode
+                            guard
+                                let target = mapModel.selectedLocation,
+                                case .active(let activeTarget) = appModel.deviceSession.phase,
+                                activeTarget.id == target.id,
+                                appModel.activeFixedCoordinateMode != mode
+                            else { return }
+                            Task {
+                                await appModel.startLocationSession(
+                                    at: target,
+                                    coordinateMode: mode
+                                )
+                            }
+                        },
                         onToggleFavourite: {
                             guard !mapModel.isResolvingAddress else { return }
                             guard let target = mapModel.selectedLocation else { return }
@@ -313,7 +377,12 @@ struct HomeView: View {
                             guard let target = mapModel.selectedLocation else { return }
                             shouldRefreshRealLocationWhenActive = false
                             mapModel.show(target)
-                            Task { await appModel.startLocationSession(at: target) }
+                            Task {
+                                await appModel.startLocationSession(
+                                    at: target,
+                                    coordinateMode: fixedCoordinateMode
+                                )
+                            }
                         },
                         onStop: {
                             shouldClearLocationAfterRestoration = true
@@ -468,6 +537,17 @@ struct HomeView: View {
             mapModel.center(on: coordinate)
         }
         .onChange(of: mapModel.selectedLocation?.id) { _, selectedLocationID in
+            if let selectedLocation = mapModel.selectedLocation {
+                if
+                    case .active(let activeTarget) = appModel.deviceSession.phase,
+                    activeTarget.id == selectedLocation.id,
+                    let activeMode = appModel.activeFixedCoordinateMode
+                {
+                    fixedCoordinateMode = activeMode
+                } else {
+                    fixedCoordinateMode = FixedCoordinateMode.recommended(for: selectedLocation)
+                }
+            }
             guard !walkingSimulation.locksDestination else { return }
             guard let destination = walkingRoutePlanner.destination else { return }
             if destination.id != selectedLocationID {
@@ -612,7 +692,15 @@ struct HomeView: View {
         guard recovery.isRoute, let destination = recovery.destination else {
             appModel.dismissInterruptedSessionRecovery()
             mapModel.show(recovery.lastReportedLocation)
-            Task { await appModel.startLocationSession(at: recovery.lastReportedLocation) }
+            let mode = recovery.fixedCoordinateMode
+                ?? FixedCoordinateMode.recommended(for: recovery.lastReportedLocation)
+            fixedCoordinateMode = mode
+            Task {
+                await appModel.startLocationSession(
+                    at: recovery.lastReportedLocation,
+                    coordinateMode: mode
+                )
+            }
             return
         }
 
@@ -712,4 +800,5 @@ private extension View {
 #Preview {
     HomeView()
         .environment(AppModel())
+        .environment(ReleaseUpdateModel())
 }

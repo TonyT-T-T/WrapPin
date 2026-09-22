@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <strong>当前版本：</strong>1.0.9（Build 18） · <strong>系统要求：</strong>iOS 27+
+  <strong>当前版本：</strong>1.0.10（Build 30） · <strong>系统要求：</strong>iOS 27+
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/iOS-27%2B-blue" alt="iOS 27+">
   <img src="https://img.shields.io/badge/UI-SwiftUI-orange" alt="SwiftUI">
   <img src="https://img.shields.io/badge/%E7%BB%B4%E6%8A%A4%E8%80%85-suversal-purple" alt="由 suversal 维护">
-  <img src="https://img.shields.io/badge/Version-1.0.9-lightgrey" alt="Version 1.0.9">
+  <img src="https://img.shields.io/badge/Version-1.0.10-lightgrey" alt="Version 1.0.9">
   <img src="https://img.shields.io/badge/License-PolyForm%20NC%201.0.0-blue" alt="PolyForm Noncommercial 1.0.0">
 </p>
 
@@ -34,14 +34,14 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 
 ## 当前进展
 
-- 当前公开版本为 **1.0.9（Build 18）**；下载以 [GitHub Releases](https://github.com/suversal/WrapPin/releases/tag/v1.0.9) 为准。
-- 本版新增 1–12 公里/小时的自定义步行速度，并统一设置页选项图标；这些功能已在 Build 16/17 的真机测试包中通过，正式 Build 18 的安装仍需单独确认。
+- 当前公开版本为 **1.0.10（Build 30）**；下载以 [GitHub Releases](https://github.com/suversal/WrapPin/releases/tag/v1.0.10) 为准。
+- 本版增加固定位置的 WGS84／GCJ-02 坐标模式选择、启动时检查公开版本更新，并收紧步行与驾车路线预览卡片布局。两种坐标模式已在部分地点做真机测试；正式 Build 30 的独立安装与界面验收仍待完成。
 - 已完成完整简体中文界面、地图标签本地化、配对与连接引导、中文安装文档和使用手册。
 - 已完善地址与坐标复制、连接检测、诊断信息复制、异常会话恢复和真实位置恢复流程。
 - 配对和定位启动不再依赖可能受 SideStore 重签 Bundle ID 影响的 `BGTaskScheduler`，并优先使用 LocalDevVPN 端点。
 - 已使用正式 Xcode Release Archive 流程生成并校验可供 SideStore 签名的未签名 IPA。
 - 已验证前台固定位置、模拟步行和停止恢复流程；长时间锁屏保持仍需更多机型和系统版本测试。
-- 可选择设备隧道跳转应用；蜂窝网络下优先使用 LocalDevVPN，Shadowrocket 建议连接 Wi-Fi。位置偏移仍需真机原始坐标证据，不应视为已修复。
+- 可选择设备隧道跳转应用；蜂窝网络下优先使用 LocalDevVPN，Shadowrocket 建议连接 Wi-Fi。不同地图或地点仍可能出现位置偏移，可在两种坐标模式间切换；不能保证所有地点都准确。
 
 ## 界面预览
 

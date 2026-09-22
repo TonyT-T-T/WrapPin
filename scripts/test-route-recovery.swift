@@ -2,6 +2,7 @@ import Foundation
 
 // Compile with the production SessionRecoveryRecord.swift to verify persisted JSON compatibility.
 enum RouteMode: String, Codable { case walking, driving }
+enum FixedCoordinateMode: String, Codable { case gcj02, wgs84 }
 struct LocationTarget: Codable, Equatable { let name: String }
 
 @main

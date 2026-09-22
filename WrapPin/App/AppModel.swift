@@ -39,6 +39,16 @@ final class AppModel {
     private var isStoppingLocationSessionForRestoration = false
     private var pendingSessionAnalyticsEvent: UsageAnalyticsEvent?
 
+    var activeFixedCoordinateMode: FixedCoordinateMode? {
+        guard
+            case .active = deviceSession.phase,
+            let recovery = activeSessionRecovery,
+            recovery.kind == .fixedLocation
+        else { return nil }
+        return recovery.fixedCoordinateMode
+            ?? FixedCoordinateMode.recommended(for: recovery.lastReportedLocation)
+    }
+
     let pairingService: any PairingService
     let onDevicePairing: OnDevicePairingCoordinator
     let deviceSession: LocalDeviceSessionCoordinator
@@ -345,12 +355,15 @@ final class AppModel {
         onDevicePairing.cancel()
     }
 
-    func startLocationSession(at target: LocationTarget) async {
+    func startLocationSession(
+        at target: LocationTarget,
+        coordinateMode: FixedCoordinateMode
+    ) async {
         await startLocationSession(
             at: target,
             selectedTarget: target,
             historyTarget: target,
-            recovery: .fixed(at: target)
+            recovery: .fixed(at: target, mode: coordinateMode)
         )
     }
 
@@ -389,7 +402,17 @@ final class AppModel {
         activeSessionRecovery = recovery
         lastRecoverySaveDate = nil
         addToHistory(historyTarget)
-        switch deviceSession.updateLocation(deviceTarget) {
+        let simulationCoordinates = recovery.kind == .fixedLocation
+            ? FixedCoordinateTransform.coordinates(
+                for: deviceTarget,
+                mode: recovery.fixedCoordinateMode
+                    ?? FixedCoordinateMode.recommended(for: deviceTarget)
+            )
+            : nil
+        switch deviceSession.updateLocation(
+            deviceTarget,
+            simulationCoordinates: simulationCoordinates
+        ) {
         case .updated:
             usageAnalytics.record(
                 .activeLocationUpdated,
@@ -420,7 +443,11 @@ final class AppModel {
             case .drivingRoute: pendingSessionAnalyticsEvent = .drivingStarted
             case .fixedLocation: pendingSessionAnalyticsEvent = .fixedLocationStarted
             }
-            deviceSession.start(pairingRecord: pairingRecord, target: deviceTarget)
+            deviceSession.start(
+                pairingRecord: pairingRecord,
+                target: deviceTarget,
+                simulationCoordinates: simulationCoordinates
+            )
         } catch {
             activeSessionRecovery = nil
             pendingSessionAnalyticsEvent = nil
@@ -455,7 +482,14 @@ final class AppModel {
             }
             deviceSession.start(
                 pairingRecord: pairingRecord,
-                target: recovery.lastReportedLocation
+                target: recovery.lastReportedLocation,
+                simulationCoordinates: recovery.kind == .fixedLocation
+                    ? FixedCoordinateTransform.coordinates(
+                        for: recovery.lastReportedLocation,
+                        mode: recovery.fixedCoordinateMode
+                            ?? FixedCoordinateMode.recommended(for: recovery.lastReportedLocation)
+                    )
+                    : nil
             )
         } catch {
             isRestoringInterruptedSession = false
@@ -621,7 +655,7 @@ final class AppModel {
             let destination = recovery.destination,
             destination.id == target.id
         {
-            recovery = .fixed(at: destination)
+            recovery = .fixed(at: destination, mode: .wgs84)
         } else {
             recovery.lastReportedLocation = target
             recovery.updatedAt = now

@@ -1,12 +1,23 @@
 # 模拟位置精度调研
 
-调研分支：`codex/location-accuracy-research`，基于 `main` 的 `4ef99d1`。用户反馈的核心现象是 **WrapPin 中的位置与对照地图中的位置约相差 1 公里**。目前尚缺地点、对照 App、两边坐标和截图，不能据此认定根因。本文件记录静态代码检查与针对这一现象的真机复现方案。
+调研分支：`codex/location-accuracy-research`，从 `main` 的 `4ef99d1` 创建，现已合入 1.0.9 主分支 `681d119`。用户反馈的核心现象是 **WrapPin 中的位置与 Apple 地图的模拟定位蓝点约相差 1 公里**。Build 21 真机读数证明模拟坐标的数值传递准确；Build 22 的苏州样本对照显示，将地图坐标换成对应的 WGS84 候选值后，Apple 地图蓝点回到苏州中心商场区域。该样本的偏移符合坐标系混用，而不是传输精度损失。
 
-## 优先排查：两张地图是否使用同一坐标系
+## 已取得的苏州样本
 
-Apple 将 `CLLocationCoordinate2D` 定义为 WGS84 坐标。高德地图使用 GCJ-02，百度地图默认使用 BD-09；两家地图平台都明确说明，直接把其他坐标系的数值当成自家坐标显示，会产生位置偏移。因此，如果对照地图是高德或百度，坐标系不一致是首要假设，**但不能仅凭约 1 公里的距离就判定为这个原因**。也不能对所有中国大陆坐标固定加减一个偏移量。
+- 同一时间（18:26）的截图中，WrapPin 显示“模拟定位中”，选中“苏州中心广场，苏州市星港街 167 号”；Apple 地图蓝点显示在其东南方向、金鸡湖西南侧，接近湖滨新天地。两张图使用不同的缩放和中心，不能只凭屏幕像素精确测出米数。
+- 用户提供的 `31.316633, 120.677664` 与[高德“苏州中心广场”地点页](https://ditu.amap.com/place/B0FFG1H9ZD)公布的地点、地址和六位小数坐标完全相同。高德说明其坐标为 GCJ-02；这使“选点坐标被当作 WGS84 注入系统”成为**高优先级假设**。
+- 随后用户在 Apple 地图搜索这组坐标，19:08 的截图中搜索图钉落在苏州中心广场，蓝点仍在东南侧。同一张地图内的两点确实分开，推翻了“搜索图钉会落在蓝点附近”的原判别预期。但这张截图不显示 WrapPin 会话状态，不能单独证明此刻仍在模拟；搜索结果也是具名地点，可能经过 POI 匹配，无法据此认定 Apple 地图如何解释原始数字。
+- 用开源 [EvilTransform 的 WGS84→GCJ-02 近似算法](https://github.com/googollee/eviltransform/blob/master/swift/LocationTransform.swift)做**诊断性推演**：若将 `31.316633, 120.677664` 当作 WGS84 再投到 GCJ-02 地图上，约得到 `31.314555, 120.681940`，即向东约 406 米、向南约 231 米，合计约 467 米。推演方向与蓝点截图吻合，但不是蓝点的实测坐标，也不是生产环境可直接采用的转换依据。
+- 用户确认在 WrapPin 中直接输入坐标模拟时也复现相同现象：WrapPin 指向苏州中心，Apple 地图蓝点在其东南侧。这排除了仅由“搜索地点名称选错”造成的解释；此反馈不作为先前反推测试值的验收结果。
+- Build 21 的 20:30:15 真机截图显示：模拟目标和 WrapPin 收到的 Core Location 回调均为 `31.316633, 120.677664`，数值距离 `0 m`，回调报告的水平精度 `5 m`，`isSimulatedBySoftware` 为“是”。这确认了**本次固定模拟在 WrapPin 进程里没有发生数值漂移**；`5 m` 是回调的精度元数据，不能证明它与地图上的建筑物相距仅 5 米。
+- Build 22 的 20:50:50 真机回调显示，候选模拟值和 Core Location 回调同为 `31.318719, 120.673397`，数值距离 `0 m`、水平精度 `5 m`、软件模拟标记“是”。紧接着 20:51 的 Apple 地图截图中，蓝点从先前的苏州中心东南侧移到苏州中心商场区域。该前后对照强烈支持**这组地图坐标需要先转换为 WGS84 再用于系统模拟**；截图不能量出剩余的精确米数。
+- 仍无法读取 Apple 地图进程内部的原始经纬度，也尚未验证搜索、地图点选、路线和已是 WGS84 的手输坐标。因此不能把本次成功外推成“所有中国坐标都要转换”。
 
-先确认这 1 公里是哪个位置之间的距离：WrapPin 的选点标记与对照地图上的目标地点，还是开始模拟后目标 App 的定位蓝点与 WrapPin 选点标记。前者侧重地图选点和数据来源；后者还涉及模拟位置服务及目标 App 的定位处理。
+## 优先排查：选点坐标与模拟服务的坐标系
+
+Apple 将 `CLLocationCoordinate2D` 定义为 WGS84 坐标；高德地图使用 GCJ-02。坐标来源与目标服务的坐标系若不一致，同一组数字会表示不同地点。本样本恰好与高德地点坐标相同，但 Apple 没有在这些 API 文档中明确说明中国大陆 MapKit 选点和开发者模拟定位之间是否自动转换。要测出边界上的实际行为，不能只凭约 1 公里的距离判定，也不能对所有中国大陆坐标固定加减一个偏移量。
+
+本样本已经确认比较的是 WrapPin 选点标记与启动模拟后的 Apple 地图蓝点，而不是高德和苹果两张地图的静态标记。需要验证坐标来源，以及 Apple 地图实际收到和显示了什么。
 
 ## 先定义问题
 
@@ -24,7 +35,7 @@ Apple 将 `CLLocationCoordinate2D` 定义为 WGS84 坐标。高德地图使用 G
 | --- | --- | --- |
 | 地图点选 | `HomeView` 用 `MapProxy.convert(point, from: .local)` 获取坐标 | 对照屏幕点击位置、标记和复制坐标；检查不同缩放级别 |
 | 搜索和坐标输入 | `MapViewModel` 从 `MKLocalSearch` 取 `item.location.coordinate`，或直接解析输入的经纬度 | 分开测试搜索结果和手输坐标；注明坐标数据来源及坐标系 |
-| 固定位置发送 | `LocationTarget` 以 `Double` 保存经纬度，Swift 经 C ABI 传给 Rust `f64`，再调用 `LocationSimulationClient.set` | 代码路径未见主动取整或坐标转换；仍需真机读取接收端坐标确认 |
+| 固定位置发送 | `LocationTarget` 以 `Double` 保存经纬度，Swift 经 C ABI 传给 Rust `f64`，再调用 `LocationSimulationClient.set` | Build 21 的同机 Core Location 回调与选中目标数值一致；Apple 地图自身如何解释这组坐标仍待测 |
 | 固定位置刷新 | Rust 检查坐标变化，坐标不变时每 4 秒重发一次 | 测量其他 App 实际接收的时间序列、后台持续性与异常中断 |
 | 路线起点 | `WalkingRoutePlanner` 默认请求系统当前位置；`WalkingSimulationController` 从路线折线首点开始注入 | 路线规划可能将起点贴到可通行路段，记录启动瞬间的跳变距离 |
 | 路线移动 | Swift 每秒按速度推进一次，沿 `MKMapPoint` 折线插值；Rust 每 200 ms 检查目标是否更新 | 高速时每秒可能跨越几十米；测量更新延迟和目标 App 的平滑处理 |
@@ -32,11 +43,17 @@ Apple 将 `CLLocationCoordinate2D` 定义为 WGS84 坐标。高德地图使用 G
 
 `CLLocationManager.desiredAccuracy = kCLLocationAccuracyBest` 用于 WrapPin 获取**真实当前位置**，并不设置开发者模拟坐标的精度。复制坐标时显示的六位小数也不足以解释约 1 公里的偏差；实际注入仍使用未截断的 `Double`。
 
+活跃会话中的“更新位置”先调用 `wp_location_session_update` 把新目标写进 Rust 共享状态，再立即将 Swift UI 阶段标成 `.active(target)`；Rust 工作循环之后才调用 `location.set`。因此卡片显示新地点只证明更新已排队，**不证明系统模拟服务已应用新坐标**；观察 Apple 地图蓝点或独立 Core Location 回调才是验收。
+
+`BackgroundLocationKeepAlive` 中的 `kCLLocationAccuracyKilometer` 容易因“约 1 公里”而被误认为直接原因；它只配置 WrapPin 自己用于后台保活的 Core Location 请求，不参与上表中的 DVT 坐标注入。尚无证据表明把它改成更高精度能消除 Apple 地图蓝点偏移。
+
 ## 真机复现与判别
 
-**第一轮只测一个固定地点**，使用同一台 iPhone、同一 iOS 版本。记录地点名称、城市、对照地图 App、WrapPin 选点方式、WrapPin 复制的经纬度和两边截图。先在 WrapPin 与 Apple 地图上对照同一地点及模拟后的定位蓝点，再与高德或百度对照。若对照平台能导出经纬度，连同其标注的坐标系一并记录；不要把 WGS84、GCJ-02 和 BD-09 的数字直接相减。
+**第一轮苏州中心广场固定点已测得**，无需再重复读取相同坐标：WrapPin 同机 Core Location 回调为 `31.316633, 120.677664`，和模拟目标一致。Apple 地图的搜索图钉已确认落在广场，而此前蓝点在东南侧；重复搜索也不再增加关键证据。
 
-若第一轮仍不能定位问题，再依次用“直接输入已知 WGS84 坐标、搜索结果、地图点选”启动固定位置，并用能显示原始 Core Location 回调的测试 App 记录 `CLLocation.coordinate`、`horizontalAccuracy`、`timestamp`、`sourceInformation?.isSimulatedBySoftware`、定位精度权限、前后台状态与截图。最后再测短距离步行和驾车路线。位置和配对数据仅保存在本地测试记录，不放进公开 issue 或遥测。
+下一步应区分“Apple 地图显示转换”与“不同 App 获得不同定位来源”：使用另一款能显示原始 Core Location 数值的 App 交叉验证，或做有明确输入坐标系的受控转换试验。若其他 App 也收到同一数值，而 Apple 地图蓝点继续显示在东南侧，坐标解释边界的证据会更强；若其他 App 得到不同数值，再查缓存、权限、系统定位来源和会话状态。WrapPin 的 `.active(target)` 只是应用会话状态，本次判别以真机 Core Location 回调为准。
+
+如果受控对照仍不能定位边界，再依次用“直接输入已知 WGS84 坐标、搜索结果、地图点选”启动固定位置，并用能显示原始 Core Location 回调的测试 App 记录 `CLLocation.coordinate`、`horizontalAccuracy`、`timestamp`、`sourceInformation?.isSimulatedBySoftware`、定位精度权限、前后台状态与截图。最后再测短距离步行和驾车路线。位置和配对数据仅保存在本地测试记录，不放进公开 issue 或遥测。
 
 对同一坐标系的输入与接收坐标，可用 `CLLocation.distance(from:)` 计算米数，并保存连续至少 30 次回调的最大值、平均值及时间间隔。若要扩大验证范围，再分别在中国大陆和其他地区选取测试点。
 
@@ -50,6 +67,18 @@ Apple 将 `CLLocationCoordinate2D` 定义为 WGS84 坐标。高德地图使用 G
 
 ## 结论边界与下一步
 
-静态检查只能说明应用当前未对固定位置坐标主动降精度；不能证明 iOS 已按该坐标向所有 App 报告，也不能证明中国大陆地图偏移的原因。先拿到一组“输入坐标 → 原始定位回调”的真机样本，再决定修选点、路线算法、会话稳定性或仅调整用户说明。不要在没有定位来源证据时加入统一偏移补偿。
+调研分支新增了手动读取入口：先在 WrapPin 保持固定位置模拟，再进入“设置 → 连接检测 → 定位精度调研”，点“读取原始定位回调”。Build 20 的初版只监听后台保活管理器的后续更新；用户报告等待十几至二十秒没有回调。这个管理器按公里级精度持续运行，点击按钮本身不会触发一次新读数，因此初版的等待不能作为系统未提供模拟定位的证据。Build 21 改用独立的高精度 `CLLocationManager`，主动启动标准定位更新，仅接受本次读取开始后的新回调，并在 15 秒后显示超时。页面同时显示模拟目标、WrapPin 自己收到的坐标、水平精度、时间和软件模拟标记；停止读取或离开页面即清除，不写入诊断报告、持久化或遥测。这个读数来自 WrapPin 进程，仍需与 Apple 地图蓝点对照；它不能直接读取 Apple 地图进程内部的定位值。
+
+修订后的本地测试包为 `WrapPin-1.0.9-build21-location-probe.ipa`，SHA-256 为 `a0169e3c95d0e5eef3de2ca049cde73cec1715e67bc66a10336c98c97ad9c859`。它从无签名 Release 归档打包，Build 核对为 21，ZIP 完整性检查通过，且上述截图证实诊断页已在真机显示回调；尚无该包的完整回归验收，也不是定位偏差修复版。Build 20 仅保留为诊断工具初版记录。
+
+Build 22 增加了仅针对本次苏州坐标的可逆试验：当前固定模拟为 `31.316633, 120.677664` 时，“连接检测”页出现“苏州坐标系试验”。“试用候选模拟值”只更新原生会话的模拟坐标至 `31.318719, 120.673397`，保留 WrapPin 地图选点；“恢复原模拟坐标”可以切回原值。候选值由 GCJ-02→WGS84 近似反算所得，按同一算法回算到原地图坐标的误差小于 0.1 米。真机回调确认候选值已进入 Core Location，随后 Apple 地图蓝点回到苏州中心商场区域。试验中 WrapPin 地图选点仍在广场，而原生模拟目标暂时是另一组数值，这是刻意保留的对照。
+
+Build 22 本地包为 `WrapPin-1.0.9-build22-suzhou-coordinate-trial.ipa`，SHA-256 为 `bee6afb1a0782cbfc44645533c25116b28a67266d226356ac11e11233836c7d4`。无签名 Release 归档和 ZIP 完整性检查通过，Build 核对为 22；用户已安装并给出上述同机回调及 Apple 地图截图。它只对这一个苏州样本提供受控试验按钮，不会对其他地点自动转换，也不是正式修复版。
+
+本次对照已经确认：对这组与高德 GCJ-02 地点坐标一致的输入，直接模拟原数字时 Apple 地图蓝点偏东南；模拟反算后的 WGS84 候选值时，蓝点回到苏州中心商场区域。下一步是把输入来源及其坐标系纳入数据模型，再在明确的来源边界上转换；不应凭地区判断给所有数字统一加偏移。
+
+静态检查与 Build 21 真机样本排除了这个固定点在 WrapPin 内部的数值精度损失；Build 22 的 A/B 试验为 GCJ-02→WGS84 转换方向提供了实际地图验证。尚需分开验证搜索结果、地图点选、手输 WGS84、路线更新以及其他地区，才能提交通用修复。
+
+若接收端数据最终证实坐标系不一致，候选修复应明确区分**用于地图显示的坐标**与**送入系统模拟服务的坐标**，并记录搜索、地图点选、手输坐标和路线各自的来源。转换应发生在经确认的来源边界，不能把所有中国大陆坐标无条件转换；否则已是 WGS84 的手输坐标会被二次偏移。修复验收至少覆盖本次苏州固定点、活跃会话更新、路线点以及中国大陆以外的固定点。
 
 参考：[Apple 坐标定义](https://developer.apple.com/documentation/corelocation/cllocationcoordinate2d)、[Apple MapProxy 坐标转换](https://developer.apple.com/documentation/mapkit/mapproxy/convert%28_%3Afrom%3A%29)、[高德坐标系说明](https://lbs.amap.com/api/javascript-api-v2/guide/transform/convertfrom)、[百度坐标系说明](https://lbsyun.baidu.com/skins/MySkin/resources/iframs/coordinate.html)、[CLLocation.horizontalAccuracy](https://developer.apple.com/documentation/corelocation/cllocation/horizontalaccuracy)、[CLLocation.sourceInformation](https://developer.apple.com/documentation/corelocation/cllocation/sourceinformation)。

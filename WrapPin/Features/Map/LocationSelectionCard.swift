@@ -144,26 +144,31 @@ struct LocationSelectionCard: View {
 
     private var coordinateModeSelection: some View {
         VStack(alignment: .leading, spacing: 7) {
-            Text("Location coordinate type")
+            Text("Simulation coordinate mode")
                 .font(.subheadline.weight(.semibold))
 
             Picker(
-                "Location coordinate type",
+                "Simulation coordinate mode",
                 selection: Binding(
                     get: { coordinateMode },
                     set: { onCoordinateModeChange($0) }
                 )
             ) {
-                Text("China map GCJ-02").tag(FixedCoordinateMode.gcj02)
-                Text("GPS WGS84").tag(FixedCoordinateMode.wgs84)
+                Text("GCJ-02 correction").tag(FixedCoordinateMode.gcj02)
+                Text("WGS84 unchanged").tag(FixedCoordinateMode.wgs84)
             }
             .pickerStyle(.segmented)
             .disabled(isWorking)
 
             Text(recommendedCoordinateMode == .gcj02
-                ? String(localized: "Suggested here: China map. If the position is off, try GPS WGS84.")
-                : String(localized: "Suggested here: GPS WGS84. If the position is off, try China map."))
+                ? String(localized: "For mainland China, try GCJ-02 first. If the position is off, switch to WGS84.")
+                : String(localized: "Outside mainland China, try WGS84 first. If the position is off, switch to GCJ-02."))
                 .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text("GCJ-02 is used by AMap and some other maps; it is not every Chinese map's coordinate system.")
+                .font(.caption2)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 

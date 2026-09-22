@@ -29,7 +29,7 @@ struct SettingsView: View {
             Form {
                 Section("Appearance") {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Theme")
+                        settingsRowLabel("Theme", symbol: "paintpalette")
                             .font(.subheadline.weight(.medium))
 
                         themePicker
@@ -37,7 +37,7 @@ struct SettingsView: View {
                     .padding(.vertical, 4)
 
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Map Style")
+                        settingsRowLabel("Map Style", symbol: "map")
                             .font(.subheadline.weight(.medium))
 
                         mapStylePicker
@@ -50,7 +50,7 @@ struct SettingsView: View {
                         ConnectionHealthView()
                             .environment(appModel)
                     } label: {
-                        Label("Connection Health", systemImage: "stethoscope")
+                        settingsRowLabel("Connection Health", symbol: "stethoscope")
                     }
 
                     Button {
@@ -59,17 +59,19 @@ struct SettingsView: View {
                         Label {
                             pairingConnectionLabel
                         } icon: {
-                            Image(systemName: "iphone.and.arrow.forward")
+                            settingsRowIcon("iphone.and.arrow.forward")
                         }
                     }
                     .foregroundStyle(.primary)
                 }
 
                 Section {
-                    Picker("Tunnel App", selection: tunnelHandoffAppBinding) {
+                    Picker(selection: tunnelHandoffAppBinding) {
                         ForEach(TunnelHandoffApp.allCases) { app in
                             Text(app.title).tag(app)
                         }
+                    } label: {
+                        settingsRowLabel("Tunnel App", symbol: "network")
                     }
                     .accessibilityHint("Selects the app to open when WrapPin cannot reach the paired iPhone.")
                 } footer: {
@@ -81,15 +83,14 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Toggle(
-                        "Share Anonymous Usage Statistics",
-                        isOn: anonymousUsageStatisticsBinding
-                    )
+                    Toggle(isOn: anonymousUsageStatisticsBinding) {
+                        settingsRowLabel("Share Anonymous Usage Statistics", symbol: "chart.bar")
+                    }
 
                     NavigationLink {
                         UsageStatisticsPrivacyView()
                     } label: {
-                        Label("What Is Shared", systemImage: "hand.raised.fill")
+                        settingsRowLabel("What Is Shared", symbol: "hand.raised")
                     }
                 } header: {
                     Text("Privacy")
@@ -101,17 +102,29 @@ struct SettingsView: View {
                     NavigationLink {
                         AboutWrapPinView()
                     } label: {
-                        Label("About WrapPin", systemImage: "info.circle")
+                        settingsRowLabel("About WrapPin", symbol: "info.circle")
                     }
 
-                    LabeledContent("Version", value: versionText)
-                    LabeledContent("Build", value: buildNumberText)
-                    LabeledContent("Built", value: buildDateText)
+                    LabeledContent {
+                        Text(versionText)
+                    } label: {
+                        settingsRowLabel("Version", symbol: "tag")
+                    }
+                    LabeledContent {
+                        Text(buildNumberText)
+                    } label: {
+                        settingsRowLabel("Build", symbol: "hammer")
+                    }
+                    LabeledContent {
+                        Text(buildDateText)
+                    } label: {
+                        settingsRowLabel("Built", symbol: "calendar")
+                    }
 
                     Button {
                         isReplayingOnboarding = true
                     } label: {
-                        Label("Replay Introduction", systemImage: "sparkles")
+                        settingsRowLabel("Replay Introduction", symbol: "sparkles")
                     }
                     .foregroundStyle(.primary)
                 }
@@ -120,7 +133,11 @@ struct SettingsView: View {
                     Button {
                         Task { await checkForUpdates() }
                     } label: {
-                        Label(updateCheckTitle, systemImage: updateCheckSymbol)
+                        Label {
+                            Text(updateCheckTitle)
+                        } icon: {
+                            settingsRowIcon(updateCheckSymbol)
+                        }
                     }
                     .disabled(releaseUpdateStatus == .checking)
 
@@ -133,15 +150,15 @@ struct SettingsView: View {
 
                 Section {
                     Link(destination: Self.repositoryURL) {
-                        Label("View & Star on GitHub", systemImage: "star")
+                        settingsRowLabel("View & Star on GitHub", symbol: "star")
                     }
 
                     Link(destination: Self.bugReportURL) {
-                        Label("Report a Bug", systemImage: "ladybug")
+                        settingsRowLabel("Report a Bug", symbol: "ladybug")
                     }
 
                     Link(destination: Self.featureRequestURL) {
-                        Label("Request a Feature", systemImage: "lightbulb")
+                        settingsRowLabel("Request a Feature", symbol: "lightbulb")
                     }
 
                     Link(destination: Self.xProfileURL) {
@@ -150,7 +167,7 @@ struct SettingsView: View {
                         } icon: {
                             Text(verbatim: "𝕏")
                                 .font(.system(size: xLogoSize, weight: .regular))
-                                .frame(width: xLogoSize, height: xLogoSize)
+                                .frame(width: 24, height: xLogoSize)
                                 .accessibilityHidden(true)
                         }
                     }
@@ -161,8 +178,10 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Button("Reset WrapPin", role: .destructive) {
+                    Button(role: .destructive) {
                         isConfirmingReset = true
+                    } label: {
+                        settingsRowLabel("Reset WrapPin", symbol: "arrow.counterclockwise")
                     }
                 } footer: {
                     Text("This clears the pairing record and local app settings, then shows onboarding again. It does not remove or change LocalDevVPN.")
@@ -213,6 +232,21 @@ struct SettingsView: View {
         case .active: String(localized: "Active")
         case .failed: String(localized: "Problem")
         }
+    }
+
+    private func settingsRowLabel(_ title: LocalizedStringKey, symbol: String) -> some View {
+        Label {
+            Text(title)
+        } icon: {
+            settingsRowIcon(symbol)
+        }
+    }
+
+    private func settingsRowIcon(_ symbol: String) -> some View {
+        Image(systemName: symbol)
+            .font(.body)
+            .frame(width: 24)
+            .accessibilityHidden(true)
     }
 
     private var preferredColorScheme: ColorScheme? {

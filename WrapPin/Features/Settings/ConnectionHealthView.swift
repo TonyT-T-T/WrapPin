@@ -10,6 +10,12 @@ struct ConnectionHealthView: View {
     @State private var didCopyDiagnostics = false
     @State private var probedTarget: LocationTarget?
     @State private var locationProbe = LocationAccuracyProbe()
+    @State private var coordinateTrialMessage: String?
+
+    private static let suzhouMapLatitude = 31.316633
+    private static let suzhouMapLongitude = 120.677664
+    private static let suzhouCandidateLatitude = 31.318719
+    private static let suzhouCandidateLongitude = 120.673397
 
     var body: some View {
         List {
@@ -138,6 +144,38 @@ struct ConnectionHealthView: View {
                 }
             }
 
+            if let activeTarget, isSuzhouTrialCoordinate(activeTarget) {
+                Section {
+                    LabeledContent("地图选点", value: formattedCoordinates(
+                        latitude: Self.suzhouMapLatitude,
+                        longitude: Self.suzhouMapLongitude
+                    ))
+                    LabeledContent("试验模拟值", value: formattedCoordinates(
+                        latitude: Self.suzhouCandidateLatitude,
+                        longitude: Self.suzhouCandidateLongitude
+                    ))
+
+                    Button {
+                        setSuzhouTrialLocation(useCandidate: isSuzhouMapCoordinate(activeTarget))
+                    } label: {
+                        Label(
+                            isSuzhouMapCoordinate(activeTarget) ? "试用候选模拟值" : "恢复原模拟坐标",
+                            systemImage: "arrow.left.arrow.right"
+                        )
+                    }
+
+                    if let coordinateTrialMessage {
+                        Text(coordinateTrialMessage)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("苏州坐标系试验")
+                } footer: {
+                    Text("仅对本次苏州中心样本试验。切换后可重新读取原始定位回调，再看 Apple 地图蓝点；试验结束请点“恢复原模拟坐标”。")
+                }
+            }
+
             Section {
                 Button {
                     Task { await runConnectionCheck() }
@@ -247,6 +285,49 @@ struct ConnectionHealthView: View {
             return target
         }
         return nil
+    }
+
+    private func isSuzhouMapCoordinate(_ target: LocationTarget) -> Bool {
+        abs(target.latitude - Self.suzhouMapLatitude) < 0.000001
+            && abs(target.longitude - Self.suzhouMapLongitude) < 0.000001
+    }
+
+    private func isSuzhouTrialCoordinate(_ target: LocationTarget) -> Bool {
+        isSuzhouMapCoordinate(target)
+            || (abs(target.latitude - Self.suzhouCandidateLatitude) < 0.000001
+                && abs(target.longitude - Self.suzhouCandidateLongitude) < 0.000001)
+    }
+
+    private func setSuzhouTrialLocation(useCandidate: Bool) {
+        let target: LocationTarget
+        if useCandidate {
+            target = LocationTarget(
+                name: "苏州中心广场（坐标系试验）",
+                subtitle: "WGS84 候选模拟坐标",
+                latitude: Self.suzhouCandidateLatitude,
+                longitude: Self.suzhouCandidateLongitude
+            )
+        } else {
+            target = appModel.selectedTarget.flatMap {
+                isSuzhouMapCoordinate($0) ? $0 : nil
+            } ?? LocationTarget(
+                name: "苏州中心广场",
+                subtitle: "苏州市 星港街167号",
+                latitude: Self.suzhouMapLatitude,
+                longitude: Self.suzhouMapLongitude
+            )
+        }
+
+        switch appModel.deviceSession.updateLocation(target) {
+        case .updated:
+            locationProbe.stop()
+            probedTarget = nil
+            coordinateTrialMessage = useCandidate
+                ? "候选坐标已排队；请读取新回调并查看 Apple 地图蓝点。"
+                : "原坐标已排队；请读取新回调确认恢复。"
+        case .failed, .unavailable:
+            coordinateTrialMessage = "切换失败，当前模拟坐标未确认改变。"
+        }
     }
 
     private func formattedCoordinates(latitude: Double, longitude: Double) -> String {

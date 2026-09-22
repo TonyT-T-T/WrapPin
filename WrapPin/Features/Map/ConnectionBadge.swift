@@ -19,8 +19,7 @@ struct ConnectionBadge: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .frame(minHeight: 44)
-        .background(.regularMaterial, in: Capsule())
-        .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
+        .glassEffect(.regular.interactive(), in: Capsule())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
             String(

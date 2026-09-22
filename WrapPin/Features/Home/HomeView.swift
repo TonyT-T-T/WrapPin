@@ -105,6 +105,7 @@ struct HomeView: View {
                 }
 
                 if !isSearchingForLocation {
+                    GlassEffectContainer(spacing: 10) {
                     HStack {
                     Button {
                         isShowingDeviceSetup = true
@@ -123,10 +124,8 @@ struct HomeView: View {
                             Image(systemName: "heart.text.square.fill")
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(.primary)
-                                .frame(width: 36, height: 36)
-                                .background(.regularMaterial, in: Circle())
-                                .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
                                 .frame(width: 44, height: 44)
+                                .glassEffect(.regular.interactive(), in: Circle())
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Favourites and history")
@@ -137,13 +136,12 @@ struct HomeView: View {
                             Image(systemName: "gearshape.fill")
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(.primary)
-                                .frame(width: 36, height: 36)
-                                .background(.regularMaterial, in: Circle())
-                                .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
                                 .frame(width: 44, height: 44)
+                                .glassEffect(.regular.interactive(), in: Circle())
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Settings")
+                    }
                     }
                     }
 

@@ -18,14 +18,18 @@ struct WalkingRoutePreviewCard: View {
     @State private var isConfirmingStop = false
 
     var body: some View {
-        ViewThatFits(in: .vertical) {
-            cardContent
-            ScrollView(.vertical, showsIndicators: false) {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                ScrollView(.vertical, showsIndicators: false) {
+                    cardContent
+                }
+                .frame(maxHeight: 460)
+            } else {
                 cardContent
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .frame(maxHeight: 460)
-        .padding(18)
+        .padding(16)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .shadow(color: .black.opacity(0.15), radius: 18, y: 8)
         .overlay(alignment: .topTrailing) {
@@ -39,8 +43,8 @@ struct WalkingRoutePreviewCard: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Close route preview")
-                .padding(.top, 18)
-                .padding(.trailing, 18)
+                .padding(.top, 16)
+                .padding(.trailing, 16)
             }
         }
         .confirmationDialog(
@@ -56,7 +60,7 @@ struct WalkingRoutePreviewCard: View {
     }
 
     private var cardContent: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: phaseSymbol)
                     .font(.title2.weight(.semibold))

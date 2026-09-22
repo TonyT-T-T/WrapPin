@@ -647,7 +647,7 @@
 "WGS84 unchanged" = "WGS84 原样";
 "For mainland China, try GCJ-02 first. If the position is off, switch to WGS84." = "中国大陆可先试 GCJ-02；位置有偏差就切换 WGS84。";
 "Outside mainland China, try WGS84 first. If the position is off, switch to GCJ-02." = "中国大陆以外可先试 WGS84；位置有偏差就切换 GCJ-02。";
-"GCJ-02 is used by AMap and some other maps; it is not every Chinese map's coordinate system." = "高德等地图使用 GCJ-02；它不代表所有国内地图。";
+"AMap uses GCJ-02; Baidu Maps uses BD-09." = "高德使用 GCJ-02；百度地图使用 BD-09。";
 "地图选点" = "地图选点";
 "模拟目标" = "模拟目标";
 "定位回调" = "定位回调";

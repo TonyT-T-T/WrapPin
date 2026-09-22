@@ -167,7 +167,7 @@ struct LocationSelectionCard: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text("GCJ-02 is used by AMap and some other maps; it is not every Chinese map's coordinate system.")
+            Text("AMap uses GCJ-02; Baidu Maps uses BD-09.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -4,6 +4,22 @@ All notable public changes to WrapPin are recorded here.
 
 ## [Unreleased]
 
+## [1.0.9] - 2026-09-22
+
+### Added
+
+- Added an optional custom walking-route speed from 1 to 12 km/h in 0.5 km/h steps, while keeping the three walking presets.
+
+### Improved
+
+- Restore a custom walking speed when resuming an interrupted route, without breaking older walking records.
+- Give the main Settings rows consistent SF Symbol icons and alignment, including the selectors, privacy control, build details and reset action.
+- Clarify that developer location simulation does not change Apple Watch, eSIM, carrier or satellite feature eligibility.
+
+### Known limitations
+
+- This release does not claim to fix reported coordinate offsets or make third-party apps accept simulated locations.
+
 ## [1.0.8] - 2026-09-22
 
 ### Added
@@ -93,7 +109,8 @@ First stable WrapPin release, based on Roam Control 0.9.2 Beta 3 and maintained 
 - Unsigned Release build and IPA integrity checks pass for version `1.0.0` Build `1`.
 - Earlier candidates passed physical-device installation and core usage testing; the final 1.0 package should still be installed once before public release.
 
-[Unreleased]: https://github.com/suversal/WrapPin/compare/v1.0.8...HEAD
+[Unreleased]: https://github.com/suversal/WrapPin/compare/v1.0.9...HEAD
+[1.0.9]: https://github.com/suversal/WrapPin/releases/tag/v1.0.9
 [1.0.8]: https://github.com/suversal/WrapPin/releases/tag/v1.0.8
 [1.0.7]: https://github.com/suversal/WrapPin/releases/tag/v1.0.7
 [1.0.6]: https://github.com/suversal/WrapPin/releases/tag/v1.0.6

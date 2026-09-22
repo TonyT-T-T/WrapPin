@@ -82,6 +82,8 @@ Use this checklist before packaging an IPA or declaring a development build stab
 - [ ] Preview Walking Route draws a plausible Apple Maps route.
 - [ ] Distance uses yards/miles under UK regional settings.
 - [ ] Pace changes update timing before the walk starts.
+- [ ] Custom walking speed supports 1–12 km/h in 0.5 km/h steps, updates timing, and can be switched back to preset paces.
+- [ ] An interrupted custom-speed walk resumes at the same speed, while older preset recovery records still restore their pace.
 - [ ] Start Walking advances location along the route.
 - [ ] Pause holds the current point and Resume continues from it.
 - [ ] The walk continues while Apple Maps or another app is in front.

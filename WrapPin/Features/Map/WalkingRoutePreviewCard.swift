@@ -18,16 +18,10 @@ struct WalkingRoutePreviewCard: View {
     @State private var isConfirmingStop = false
 
     var body: some View {
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                ScrollView(.vertical, showsIndicators: false) {
-                    cardContent
-                }
-                .frame(maxHeight: 460)
-            } else {
-                cardContent
-            }
+        ScrollView(.vertical, showsIndicators: false) {
+            cardContent
         }
+        .frame(maxHeight: 460)
         .padding(18)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .shadow(color: .black.opacity(0.15), radius: 18, y: 8)
@@ -97,20 +91,37 @@ struct WalkingRoutePreviewCard: View {
 
     @ViewBuilder
     private var pacePicker: some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            Picker("Walking pace", selection: paceBinding) {
-                ForEach(WalkingPace.allCases) { pace in
-                    Text(pace.title).tag(pace)
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle("Custom walking speed", isOn: customWalkingSpeedEnabled)
+            if simulation.customWalkingSpeedKilometresPerHour != nil {
+                HStack {
+                    Text("Walking speed")
+                        .font(.subheadline.weight(.medium))
+                    Spacer()
+                    Text(customWalkingSpeedText)
+                        .font(.subheadline.monospacedDigit().weight(.semibold))
                 }
-            }
-            .pickerStyle(.menu)
-        } else {
-            Picker("Walking pace", selection: paceBinding) {
-                ForEach(WalkingPace.allCases) { pace in
-                    Text(pace.title).tag(pace)
+                Slider(value: customWalkingSpeedBinding, in: 1...12, step: 0.5)
+                    .accessibilityLabel("Walking speed")
+                    .accessibilityValue(customWalkingSpeedText)
+                Text("Constant route speed · 1–12 km/h")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if dynamicTypeSize.isAccessibilitySize {
+                Picker("Walking pace", selection: paceBinding) {
+                    ForEach(WalkingPace.allCases) { pace in
+                        Text(pace.title).tag(pace)
+                    }
                 }
+                .pickerStyle(.menu)
+            } else {
+                Picker("Walking pace", selection: paceBinding) {
+                    ForEach(WalkingPace.allCases) { pace in
+                        Text(pace.title).tag(pace)
+                    }
+                }
+                .pickerStyle(.segmented)
             }
-            .pickerStyle(.segmented)
         }
     }
 
@@ -449,6 +460,27 @@ struct WalkingRoutePreviewCard: View {
         Binding(
             get: { simulation.pace },
             set: { simulation.pace = $0 }
+        )
+    }
+
+    private var customWalkingSpeedEnabled: Binding<Bool> {
+        Binding(
+            get: { simulation.customWalkingSpeedKilometresPerHour != nil },
+            set: { simulation.customWalkingSpeedKilometresPerHour = $0 ? 5 : nil }
+        )
+    }
+
+    private var customWalkingSpeedBinding: Binding<Double> {
+        Binding(
+            get: { simulation.customWalkingSpeedKilometresPerHour ?? 5 },
+            set: { simulation.customWalkingSpeedKilometresPerHour = $0 }
+        )
+    }
+
+    private var customWalkingSpeedText: String {
+        String(
+            format: NSLocalizedString("%.1f km/h", comment: ""),
+            simulation.customWalkingSpeedKilometresPerHour ?? 5
         )
     }
 

@@ -72,6 +72,10 @@
 "Entered Location" = "Entered Location";
 "Entered using coordinates" = "Entered using coordinates";
 "Finding nearby address…" = "Finding nearby address…";
+"Custom walking speed" = "Custom walking speed";
+"Walking speed" = "Walking speed";
+"Constant route speed · 1–12 km/h" = "Constant route speed · 1–12 km/h";
+"%.1f km/h" = "%.1f km/h";
 "Address unavailable · %@" = "Address unavailable · %@";
 "Copy coordinates" = "Copy coordinates";
 "Coordinates copied" = "Coordinates copied";

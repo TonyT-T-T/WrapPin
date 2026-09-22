@@ -1,5 +1,21 @@
 # WrapPin releases
 
+## 1.0.9 (Build 18)
+
+- Created: 22 September 2026
+- Package: `WrapPin-1.0.9-build18.ipa`
+- Build: optimized unsigned Xcode Release Archive, arm64 iPhone executable
+- Requires: iOS 27.0 or later
+- Xcode: 27.0 (`27A266a`)
+- Distribution: unsigned IPA for SideStore or another user-side signing tool
+- SHA-256: `95f5a5977efab2c1cdf447e949a3defb1ecbc4be673294c31b64674f136e2f07`
+- Changes: optional 1–12 km/h custom walking speed with recovery, plus consistently aligned Settings icons.
+- Verification: custom speed passed physical-iPhone testing in Build 16; Settings icons passed in Build 17. Localization, native-error, background-session, tunnel-policy, route-recovery, Release Archive and IPA identity/integrity checks passed. Build 18 itself has not yet been installed independently.
+- Known issues: no coordinate-offset fix or guarantee that third-party apps accept simulated locations; regional and carrier feature eligibility is unchanged. Shadowrocket on cellular may still lack a compatible paired-device connection.
+- Publication: GitHub Release `v1.0.9`.
+
+See [the 1.0.9 build notes](../Documentation/Release-1.0.9.md) for details.
+
 ## 1.0.8 (Build 15)
 
 - Created: 22 September 2026

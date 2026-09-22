@@ -73,7 +73,7 @@ Only LocalDevVPN startup needs this temporary change. After the secure location 
 1. Choose a destination.
 2. Tap **Preview Walk**.
 3. Check the route, distance, estimated time and arrival time.
-4. Choose a walking pace.
+4. Choose a walking pace, or turn on **Custom walking speed** to select 1–12 km/h in 0.5 km/h steps. For cycling or faster travel, use a driving route where suitable.
 5. Tap **Start Walking**.
 
 During the walk:

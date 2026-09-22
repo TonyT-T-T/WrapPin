@@ -15,6 +15,19 @@ struct RouteRecoveryCheck {
         precondition(oldWalk.isRoute && oldWalk.routeMode == .walking)
         precondition(oldWalk.savedRouteSpeed == 1.4)
 
+        let customWalk = SessionRecoveryRecord.route(
+            from: LocationTarget(name: "Start"),
+            to: LocationTarget(name: "End"),
+            mode: .walking,
+            speedMetresPerSecond: 7.5 / 3.6
+        )
+        let restoredCustom = try decoder.decode(
+            SessionRecoveryRecord.self,
+            from: JSONEncoder().encode(customWalk)
+        )
+        precondition(restoredCustom.kind == .walkingRoute)
+        precondition(abs((restoredCustom.savedRouteSpeed ?? 0) * 3.6 - 7.5) < 0.0001)
+
         let driving = SessionRecoveryRecord.route(
             from: LocationTarget(name: "Start"),
             to: LocationTarget(name: "End"),
@@ -27,6 +40,6 @@ struct RouteRecoveryCheck {
         )
         precondition(restored.kind == .drivingRoute && restored.routeMode == .driving)
         precondition(abs((restored.savedRouteSpeed ?? 0) * 3.6 - 100) < 0.0001)
-        print("Route recovery: legacy walking and new driving records passed")
+        print("Route recovery: legacy walking, custom walking and driving records passed")
     }
 }

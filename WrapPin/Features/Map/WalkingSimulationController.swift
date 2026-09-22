@@ -39,6 +39,7 @@ final class WalkingSimulationController {
     private(set) var distanceTravelled: CLLocationDistance = 0
     private(set) var totalDistance: CLLocationDistance = 0
     var pace: WalkingPace = .normal
+    var customWalkingSpeedKilometresPerHour: Double?
     private(set) var mode: RouteMode = .walking
     var drivingSpeedKilometresPerHour: Double = 80
 
@@ -67,7 +68,12 @@ final class WalkingSimulationController {
     }
 
     var speedMetresPerSecond: Double {
-        mode == .walking ? pace.metresPerSecond : drivingSpeedKilometresPerHour / 3.6
+        if mode == .walking {
+            guard let customWalkingSpeedKilometresPerHour,
+                  customWalkingSpeedKilometresPerHour.isFinite else { return pace.metresPerSecond }
+            return min(max(customWalkingSpeedKilometresPerHour, 1), 12) / 3.6
+        }
+        return drivingSpeedKilometresPerHour / 3.6
     }
 
     var locksDestination: Bool {

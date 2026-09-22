@@ -633,8 +633,15 @@ struct HomeView: View {
             appModel.dismissInterruptedSessionRecovery()
             walkingSimulation.prepare(route: route, destination: destination, mode: recovery.routeMode)
             if let savedSpeed = recovery.savedRouteSpeed, savedSpeed.isFinite {
-                if recovery.routeMode == .walking, let recoveredPace = WalkingPace(rawValue: savedSpeed) {
-                    walkingSimulation.pace = recoveredPace
+                if recovery.routeMode == .walking {
+                    if let recoveredPace = WalkingPace.allCases.first(where: {
+                        abs($0.metresPerSecond - savedSpeed) < 0.0001
+                    }) {
+                        walkingSimulation.pace = recoveredPace
+                        walkingSimulation.customWalkingSpeedKilometresPerHour = nil
+                    } else {
+                        walkingSimulation.customWalkingSpeedKilometresPerHour = min(max(savedSpeed * 3.6, 1), 12)
+                    }
                 } else if recovery.routeMode == .driving {
                     walkingSimulation.drivingSpeedKilometresPerHour = min(max(savedSpeed * 3.6, 5), 240)
                 }

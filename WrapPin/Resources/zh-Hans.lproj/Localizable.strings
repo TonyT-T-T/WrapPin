@@ -383,6 +383,10 @@
 "Driving to %@" = "驾车前往 %@";
 "%lld%% complete" = "已完成 %lld%%";
 "Walking pace" = "步行速度";
+"Custom walking speed" = "自定义步行速度";
+"Walking speed" = "步行时速";
+"Constant route speed · 1–12 km/h" = "匀速沿路线移动 · 1–12 公里/小时";
+"%.1f km/h" = "%.1f 公里/小时";
 "Remaining" = "剩余";
 "Distance" = "距离";
 "Status" = "状态";

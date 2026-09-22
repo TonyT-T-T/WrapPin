@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <strong>当前版本：</strong>1.0.8（Build 15） · <strong>系统要求：</strong>iOS 27+
+  <strong>当前版本：</strong>1.0.9（Build 18） · <strong>系统要求：</strong>iOS 27+
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/iOS-27%2B-blue" alt="iOS 27+">
   <img src="https://img.shields.io/badge/UI-SwiftUI-orange" alt="SwiftUI">
   <img src="https://img.shields.io/badge/%E7%BB%B4%E6%8A%A4%E8%80%85-suversal-purple" alt="由 suversal 维护">
-  <img src="https://img.shields.io/badge/Version-1.0.8-lightgrey" alt="Version 1.0.8">
+  <img src="https://img.shields.io/badge/Version-1.0.9-lightgrey" alt="Version 1.0.9">
   <img src="https://img.shields.io/badge/License-PolyForm%20NC%201.0.0-blue" alt="PolyForm Noncommercial 1.0.0">
 </p>
 
@@ -34,14 +34,14 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 
 ## 当前进展
 
-- 当前公开版本为 **1.0.8（Build 15）**；下载以 [GitHub Releases](https://github.com/suversal/WrapPin/releases/tag/v1.0.8) 为准。
-- 1.0.8 首发 IPA 曾有 SideStore 安装失败报告；现已替换为用户确认可在 iPhone 安装的重打包文件，Release 仅保留一份 IPA。完整隧道功能矩阵仍待验收。
+- 当前公开版本为 **1.0.9（Build 18）**；下载以 [GitHub Releases](https://github.com/suversal/WrapPin/releases/tag/v1.0.9) 为准。
+- 本版新增 1–12 公里/小时的自定义步行速度，并统一设置页选项图标；这些功能已在 Build 16/17 的真机测试包中通过，正式 Build 18 的安装仍需单独确认。
 - 已完成完整简体中文界面、地图标签本地化、配对与连接引导、中文安装文档和使用手册。
 - 已完善地址与坐标复制、连接检测、诊断信息复制、异常会话恢复和真实位置恢复流程。
 - 配对和定位启动不再依赖可能受 SideStore 重签 Bundle ID 影响的 `BGTaskScheduler`，并优先使用 LocalDevVPN 端点。
 - 已使用正式 Xcode Release Archive 流程生成并校验可供 SideStore 签名的未签名 IPA。
 - 已验证前台固定位置、模拟步行和停止恢复流程；长时间锁屏保持仍需更多机型和系统版本测试。
-- 1.0.8 可选择设备隧道跳转应用，并改进连接失败时的引导；蜂窝网络下优先使用 LocalDevVPN，Shadowrocket 建议连接 Wi-Fi。
+- 可选择设备隧道跳转应用；蜂窝网络下优先使用 LocalDevVPN，Shadowrocket 建议连接 Wi-Fi。位置偏移仍需真机原始坐标证据，不应视为已修复。
 
 ## 界面预览
 
@@ -135,6 +135,7 @@ WrapPin 的主要优点：
 - LocalDevVPN 用于本机隧道，通常不能和另一个正在接管系统 VPN 的工具同时工作。
 - SideStore 免费签名受 Apple 的七天刷新、App 数量和 App ID 数量限制。
 - 某些 App 会同时检查 IP、Wi-Fi、基站、账号地区、历史缓存或风控信号，因此不保证所有第三方 App 都接受模拟位置。
+- 开发者位置模拟不改变 Apple Watch 的地区资格，也不改变 iPhone 的 eSIM、运营商或卫星功能资格；地图显示在国外不等于这些系统功能可用。
 - 已验证前台固定位置、步行和停止恢复流程；长时间锁屏保持仍需更多真机测试，不作稳定性保证。
 
 ## 安装前准备

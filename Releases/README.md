@@ -8,9 +8,9 @@
 - Requires: iOS 27.0 or later
 - Xcode: 27.0 (`27A266a`)
 - Distribution: unsigned IPA for SideStore or another user-side signing tool
-- SHA-256: `c05c943b0274879286363e504c95c23a8cba0f4cf74c228a61a9e7243ad6e218`
+- SHA-256: `fcd97b69d1a07e64fd157209e40e89d8c639537b1a0eaf8ed5f69a122f3fb8ca`
 - Changes: adds a LocalDevVPN/Shadowrocket handoff choice and clearer Wi-Fi/cellular tunnel guidance. It does not read another app's VPN switch or change location accuracy.
-- Verification: localization, native failure classification, background-session lifecycle, tunnel-handoff policy and route-recovery checks passed. The Release Archive and IPA payload, identity, arm64 architecture, unsigned state, privacy manifest and legal resources were checked. The user reported that the preceding Build 14 candidate looked okay; the final Build 15 IPA has not received a separate physical-device acceptance test.
+- Verification: localization, native failure classification, background-session lifecycle, tunnel-handoff policy and route-recovery checks passed. The Release Archive and IPA payload, identity, arm64 architecture, unsigned state, privacy manifest and legal resources were checked. After the first IPA triggered `SideSign.Archive.Error 1`, the same Build 15 app was repackaged with `ditto`; the user confirmed that this package installed on an iPhone. Wi-Fi/cellular × both tunnel apps has not been fully verified on the final package. The exact cause of the first installation failure remains unconfirmed.
 - Known issue: Shadowrocket on cellular may not expose the paired-device connection; use Wi-Fi or LocalDevVPN. LocalDevVPN on cellular retains its app handoff on each new session. Optional anonymous telemetry is inactive in this public-source build because its ingestion identifiers are blank.
 - Publication: GitHub Release `v1.0.8`.
 

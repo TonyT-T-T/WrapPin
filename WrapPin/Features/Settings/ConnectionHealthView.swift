@@ -1,3 +1,4 @@
+import CoreLocation
 import SwiftUI
 import UIKit
 
@@ -7,6 +8,7 @@ struct ConnectionHealthView: View {
     @State private var diagnostics = ConnectionDiagnosticsCoordinator()
     @State private var isShowingDeviceSetup = false
     @State private var didCopyDiagnostics = false
+    @State private var probedTarget: LocationTarget?
 
     var body: some View {
         List {
@@ -79,6 +81,57 @@ struct ConnectionHealthView: View {
 
                 if let activeTarget, !activeTarget.subtitle.isEmpty {
                     LabeledContent("Area", value: activeTarget.subtitle)
+                }
+            }
+
+            if let activeTarget {
+                Section {
+                    Button {
+                        if locationProbe.isDiagnosticProbeEnabled {
+                            locationProbe.stopDiagnosticProbe()
+                            probedTarget = nil
+                        } else {
+                            probedTarget = activeTarget
+                            locationProbe.startDiagnosticProbe()
+                        }
+                    } label: {
+                        Label(
+                            locationProbe.isDiagnosticProbeEnabled ? "停止读取定位回调" : "读取原始定位回调",
+                            systemImage: locationProbe.isDiagnosticProbeEnabled ? "stop.circle" : "location.magnifyingglass"
+                        )
+                    }
+                    .disabled(!locationProbe.started)
+
+                    if locationProbe.isDiagnosticProbeEnabled, let probedTarget {
+                        LabeledContent("模拟目标", value: formattedCoordinates(
+                            latitude: probedTarget.latitude,
+                            longitude: probedTarget.longitude
+                        ))
+
+                        if let sample = locationProbe.diagnosticSample {
+                            LabeledContent("定位回调", value: formattedCoordinates(
+                                latitude: sample.latitude,
+                                longitude: sample.longitude
+                            ))
+                            LabeledContent("数值距离", value: formattedDistance(
+                                target: probedTarget,
+                                sample: sample
+                            ))
+                            LabeledContent("水平精度", value: String(format: "%.0f m", sample.horizontalAccuracy))
+                            LabeledContent("回调时间", value: sample.timestamp.formatted(
+                                date: .omitted,
+                                time: .standard
+                            ))
+                            LabeledContent("软件模拟标记", value: simulatedSourceValue(sample))
+                        } else {
+                            Text("等待本次读取开始后的定位回调…")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("定位精度调研")
+                } footer: {
+                    Text("仅显示本次读取后的最新 Core Location 回调，关闭页面即清除。数值距离不能单独证明 Apple 地图蓝点的显示坐标。")
                 }
             }
 
@@ -177,6 +230,8 @@ struct ConnectionHealthView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onDisappear {
             diagnostics.cancel()
+            locationProbe.stopDiagnosticProbe()
+            probedTarget = nil
         }
         .sheet(isPresented: $isShowingDeviceSetup) {
             PairingSetupView()
@@ -189,6 +244,28 @@ struct ConnectionHealthView: View {
             return target
         }
         return nil
+    }
+
+    private var locationProbe: BackgroundLocationKeepAlive {
+        appModel.deviceSession.backgroundKeepAlive
+    }
+
+    private func formattedCoordinates(latitude: Double, longitude: Double) -> String {
+        String(format: "%.6f, %.6f", latitude, longitude)
+    }
+
+    private func formattedDistance(
+        target: LocationTarget,
+        sample: LocationDiagnosticSample
+    ) -> String {
+        let targetLocation = CLLocation(latitude: target.latitude, longitude: target.longitude)
+        let receivedLocation = CLLocation(latitude: sample.latitude, longitude: sample.longitude)
+        return String(format: "%.0f m", targetLocation.distance(from: receivedLocation))
+    }
+
+    private func simulatedSourceValue(_ sample: LocationDiagnosticSample) -> String {
+        guard let isSimulated = sample.isSimulatedBySoftware else { return "未提供" }
+        return isSimulated ? "是" : "否"
     }
 
     private var coordinatesValue: String {

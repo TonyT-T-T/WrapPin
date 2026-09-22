@@ -2,6 +2,14 @@ import CoreLocation
 import Foundation
 import Observation
 
+struct LocationDiagnosticSample: Sendable {
+    let latitude: Double
+    let longitude: Double
+    let horizontalAccuracy: Double
+    let timestamp: Date
+    let isSimulatedBySoftware: Bool?
+}
+
 enum BackgroundKeepAliveStatus: String, Sendable {
     case idle
     case awaitingAuthorization
@@ -31,18 +39,21 @@ enum BackgroundKeepAliveStatus: String, Sendable {
     }
 }
 
-/// Receives Core Location updates only to keep the native device session alive
-/// while WrapPin is in the background. Coordinates are never stored, injected,
-/// compared, or sent to analytics; the native DVT service remains the source.
+/// Receives Core Location updates to keep the native device session alive.
+/// An explicitly started location probe retains only the latest callback in memory
+/// for the Connection Health screen. Coordinates are never persisted or sent to analytics.
 @MainActor
 @Observable
 final class BackgroundLocationKeepAlive: NSObject, @preconcurrency CLLocationManagerDelegate {
     private(set) var status: BackgroundKeepAliveStatus = .idle
     private(set) var started = false
+    private(set) var diagnosticSample: LocationDiagnosticSample?
+    private(set) var isDiagnosticProbeEnabled = false
 
     private let manager: CLLocationManager
     private var requested = false
     private let hasBackgroundMode: Bool
+    private var diagnosticStartedAt: Date?
 
     init(
         manager: CLLocationManager = CLLocationManager(),
@@ -67,6 +78,7 @@ final class BackgroundLocationKeepAlive: NSObject, @preconcurrency CLLocationMan
     }
 
     func stop() {
+        stopDiagnosticProbe()
         guard requested || started else { return }
         requested = false
         manager.stopUpdatingLocation()
@@ -75,7 +87,21 @@ final class BackgroundLocationKeepAlive: NSObject, @preconcurrency CLLocationMan
         started = false
     }
 
+    func startDiagnosticProbe() {
+        guard requested, started else { return }
+        diagnosticSample = nil
+        diagnosticStartedAt = Date()
+        isDiagnosticProbeEnabled = true
+    }
+
+    func stopDiagnosticProbe() {
+        isDiagnosticProbeEnabled = false
+        diagnosticStartedAt = nil
+        diagnosticSample = nil
+    }
+
     private func unavailable(_ status: BackgroundKeepAliveStatus) {
+        stopDiagnosticProbe()
         manager.stopUpdatingLocation()
         manager.allowsBackgroundLocationUpdates = false
         self.status = status
@@ -116,6 +142,17 @@ final class BackgroundLocationKeepAlive: NSObject, @preconcurrency CLLocationMan
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard requested, started, !locations.isEmpty else { return }
         status = .receivingUpdates
+        guard isDiagnosticProbeEnabled, let diagnosticStartedAt else { return }
+        guard let location = locations.last(where: {
+            $0.horizontalAccuracy >= 0 && $0.timestamp >= diagnosticStartedAt
+        }) else { return }
+        diagnosticSample = LocationDiagnosticSample(
+            latitude: location.coordinate.latitude,
+            longitude: location.coordinate.longitude,
+            horizontalAccuracy: location.horizontalAccuracy,
+            timestamp: location.timestamp,
+            isSimulatedBySoftware: location.sourceInformation?.isSimulatedBySoftware
+        )
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

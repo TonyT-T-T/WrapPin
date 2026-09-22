@@ -14,24 +14,32 @@ struct SimulationCoordinates: Equatable, Sendable {
     }
 }
 
-/// A bounded, fixed-location trial around Suzhou Center. Other places and route
-/// points retain their existing numeric behavior until their source is measured.
-enum SuzhouCoordinateCorrection {
-    private static let trialLatitude = 31.316633
-    private static let trialLongitude = 120.677664
-    private static let trialRadiusInDegrees = 0.05
+enum FixedCoordinateMode: String, CaseIterable, Codable, Sendable {
+    case gcj02
+    case wgs84
+
+    static func recommended(for target: LocationTarget) -> Self {
+        // Recommendation only: the user can switch modes for any selected point.
+        // This broad mainland envelope is not used to restrict conversion.
+        (18.0...54.0).contains(target.latitude)
+            && (73.0...135.0).contains(target.longitude) ? .gcj02 : .wgs84
+    }
+}
+
+enum FixedCoordinateTransform {
     private static let semiMajorAxis = 6_378_245.0
     private static let eccentricitySquared = 0.00669342162296594323
 
-    static func forFixedTarget(_ target: LocationTarget) -> SimulationCoordinates {
+    static func coordinates(
+        for target: LocationTarget,
+        mode: FixedCoordinateMode
+    ) -> SimulationCoordinates {
         let original = SimulationCoordinates(target)
-        guard
-            abs(target.latitude - trialLatitude) <= trialRadiusInDegrees,
-            abs(target.longitude - trialLongitude) <= trialRadiusInDegrees
-        else { return original }
+        guard mode == .gcj02, abs(target.latitude) < 80 else { return original }
 
-        // Solve forward(WGS84) = selected map coordinate. The correction varies
-        // by location, so a constant latitude/longitude offset is insufficient.
+        // Invert the location-dependent GCJ-02 projection for the selected
+        // point. This mode is user-selectable in the test build, including
+        // outside mainland China, so users can compare the two interpretations.
         var candidate = original
         for _ in 0..<8 {
             let projected = wgs84ToGCJ02(candidate)

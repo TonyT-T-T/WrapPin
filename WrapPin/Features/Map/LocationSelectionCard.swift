@@ -14,6 +14,9 @@ struct LocationSelectionCard: View {
     let tunnelAppInstallURL: URL
     let previewingRouteMode: RouteMode?
     let routeError: String?
+    let coordinateMode: FixedCoordinateMode
+    let recommendedCoordinateMode: FixedCoordinateMode
+    let onCoordinateModeChange: (FixedCoordinateMode) -> Void
     let onToggleFavourite: () -> Void
     let onClearSelection: () -> Void
     let onPreviewRoute: (RouteMode) -> Void
@@ -54,6 +57,7 @@ struct LocationSelectionCard: View {
         VStack(alignment: .leading, spacing: 16) {
             if let location {
                 locationHeader(for: location)
+                coordinateModeSelection
 
                 Button(action: primaryAction) {
                     HStack(spacing: 8) {
@@ -134,6 +138,39 @@ struct LocationSelectionCard: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private var coordinateModeSelection: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text("Location coordinate type")
+                .font(.subheadline.weight(.semibold))
+
+            Picker(
+                "Location coordinate type",
+                selection: Binding(
+                    get: { coordinateMode },
+                    set: { onCoordinateModeChange($0) }
+                )
+            ) {
+                Text("China map GCJ-02").tag(FixedCoordinateMode.gcj02)
+                Text("GPS WGS84").tag(FixedCoordinateMode.wgs84)
+            }
+            .pickerStyle(.segmented)
+            .disabled(isWorking)
+
+            Text(recommendedCoordinateMode == .gcj02
+                ? String(localized: "Suggested here: China map. If the position is off, try GPS WGS84.")
+                : String(localized: "Suggested here: GPS WGS84. If the position is off, try China map."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if isShowingActiveTarget {
+                Text("Switching modes updates the current simulated location immediately.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }

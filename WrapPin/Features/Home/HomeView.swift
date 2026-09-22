@@ -18,6 +18,7 @@ struct HomeView: View {
     @State private var isPreparingRecoveredWalk = false
     @State private var recoveredWalkError: String?
     @State private var followsSimulatedLocation = false
+    @State private var fixedCoordinateMode: FixedCoordinateMode = .wgs84
     @FocusState private var isSearchFocused: Bool
 
     init(
@@ -288,6 +289,25 @@ struct HomeView: View {
                         tunnelAppInstallURL: appModel.selectedTunnelAppInstallURL,
                         previewingRouteMode: walkingRoutePlanner.isLoading ? walkingRoutePlanner.mode : nil,
                         routeError: walkingRoutePlanner.errorMessage,
+                        coordinateMode: fixedCoordinateMode,
+                        recommendedCoordinateMode: mapModel.selectedLocation.map(
+                            FixedCoordinateMode.recommended
+                        ) ?? .wgs84,
+                        onCoordinateModeChange: { mode in
+                            fixedCoordinateMode = mode
+                            guard
+                                let target = mapModel.selectedLocation,
+                                case .active(let activeTarget) = appModel.deviceSession.phase,
+                                activeTarget.id == target.id,
+                                appModel.activeFixedCoordinateMode != mode
+                            else { return }
+                            Task {
+                                await appModel.startLocationSession(
+                                    at: target,
+                                    coordinateMode: mode
+                                )
+                            }
+                        },
                         onToggleFavourite: {
                             guard !mapModel.isResolvingAddress else { return }
                             guard let target = mapModel.selectedLocation else { return }
@@ -313,7 +333,12 @@ struct HomeView: View {
                             guard let target = mapModel.selectedLocation else { return }
                             shouldRefreshRealLocationWhenActive = false
                             mapModel.show(target)
-                            Task { await appModel.startLocationSession(at: target) }
+                            Task {
+                                await appModel.startLocationSession(
+                                    at: target,
+                                    coordinateMode: fixedCoordinateMode
+                                )
+                            }
                         },
                         onStop: {
                             shouldClearLocationAfterRestoration = true
@@ -468,6 +493,17 @@ struct HomeView: View {
             mapModel.center(on: coordinate)
         }
         .onChange(of: mapModel.selectedLocation?.id) { _, selectedLocationID in
+            if let selectedLocation = mapModel.selectedLocation {
+                if
+                    case .active(let activeTarget) = appModel.deviceSession.phase,
+                    activeTarget.id == selectedLocation.id,
+                    let activeMode = appModel.activeFixedCoordinateMode
+                {
+                    fixedCoordinateMode = activeMode
+                } else {
+                    fixedCoordinateMode = FixedCoordinateMode.recommended(for: selectedLocation)
+                }
+            }
             guard !walkingSimulation.locksDestination else { return }
             guard let destination = walkingRoutePlanner.destination else { return }
             if destination.id != selectedLocationID {
@@ -612,7 +648,15 @@ struct HomeView: View {
         guard recovery.isRoute, let destination = recovery.destination else {
             appModel.dismissInterruptedSessionRecovery()
             mapModel.show(recovery.lastReportedLocation)
-            Task { await appModel.startLocationSession(at: recovery.lastReportedLocation) }
+            let mode = recovery.fixedCoordinateMode
+                ?? FixedCoordinateMode.recommended(for: recovery.lastReportedLocation)
+            fixedCoordinateMode = mode
+            Task {
+                await appModel.startLocationSession(
+                    at: recovery.lastReportedLocation,
+                    coordinateMode: mode
+                )
+            }
             return
         }
 

@@ -120,3 +120,9 @@
 "This iPhone was not reachable through the device tunnel. If you are using Shadowrocket on mobile data, connect to Wi-Fi and run the check again." = "This iPhone was not reachable through the device tunnel. If you are using Shadowrocket on mobile data, connect to Wi-Fi and run the check again.";
 "This iPhone was not reachable through the device tunnel. Check that a compatible tunnel is connected. On mobile data, switch data off briefly and run the check again." = "This iPhone was not reachable through the device tunnel. Check that a compatible tunnel is connected. On mobile data, switch data off briefly and run the check again.";
 "The pairing record is valid and this iPhone is reachable through the device tunnel." = "The pairing record is valid and this iPhone is reachable through the device tunnel.";
+"Location coordinate type" = "Location coordinate type";
+"China map GCJ-02" = "China map GCJ-02";
+"GPS WGS84" = "GPS WGS84";
+"Suggested here: China map. If the position is off, try GPS WGS84." = "Suggested here: China map. If the position is off, try GPS WGS84.";
+"Suggested here: GPS WGS84. If the position is off, try China map." = "Suggested here: GPS WGS84. If the position is off, try China map.";
+"Switching modes updates the current simulated location immediately." = "Switching modes updates the current simulated location immediately.";

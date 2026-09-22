@@ -39,6 +39,16 @@ final class AppModel {
     private var isStoppingLocationSessionForRestoration = false
     private var pendingSessionAnalyticsEvent: UsageAnalyticsEvent?
 
+    var activeFixedCoordinateMode: FixedCoordinateMode? {
+        guard
+            case .active = deviceSession.phase,
+            let recovery = activeSessionRecovery,
+            recovery.kind == .fixedLocation
+        else { return nil }
+        return recovery.fixedCoordinateMode
+            ?? FixedCoordinateMode.recommended(for: recovery.lastReportedLocation)
+    }
+
     let pairingService: any PairingService
     let onDevicePairing: OnDevicePairingCoordinator
     let deviceSession: LocalDeviceSessionCoordinator
@@ -345,12 +355,15 @@ final class AppModel {
         onDevicePairing.cancel()
     }
 
-    func startLocationSession(at target: LocationTarget) async {
+    func startLocationSession(
+        at target: LocationTarget,
+        coordinateMode: FixedCoordinateMode
+    ) async {
         await startLocationSession(
             at: target,
             selectedTarget: target,
             historyTarget: target,
-            recovery: .fixed(at: target)
+            recovery: .fixed(at: target, mode: coordinateMode)
         )
     }
 
@@ -390,7 +403,11 @@ final class AppModel {
         lastRecoverySaveDate = nil
         addToHistory(historyTarget)
         let simulationCoordinates = recovery.kind == .fixedLocation
-            ? SuzhouCoordinateCorrection.forFixedTarget(deviceTarget)
+            ? FixedCoordinateTransform.coordinates(
+                for: deviceTarget,
+                mode: recovery.fixedCoordinateMode
+                    ?? FixedCoordinateMode.recommended(for: deviceTarget)
+            )
             : nil
         switch deviceSession.updateLocation(
             deviceTarget,
@@ -467,7 +484,11 @@ final class AppModel {
                 pairingRecord: pairingRecord,
                 target: recovery.lastReportedLocation,
                 simulationCoordinates: recovery.kind == .fixedLocation
-                    ? SuzhouCoordinateCorrection.forFixedTarget(recovery.lastReportedLocation)
+                    ? FixedCoordinateTransform.coordinates(
+                        for: recovery.lastReportedLocation,
+                        mode: recovery.fixedCoordinateMode
+                            ?? FixedCoordinateMode.recommended(for: recovery.lastReportedLocation)
+                    )
                     : nil
             )
         } catch {
@@ -634,7 +655,7 @@ final class AppModel {
             let destination = recovery.destination,
             destination.id == target.id
         {
-            recovery = .fixed(at: destination)
+            recovery = .fixed(at: destination, mode: .wgs84)
         } else {
             recovery.lastReportedLocation = target
             recovery.updatedAt = now

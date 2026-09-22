@@ -642,3 +642,9 @@
 "The iPhone could not connect to WrapPin." = "iPhone 无法连接 WrapPin。";
 "WrapPin could not confirm stopping location simulation." = "WrapPin 无法确认停止模拟定位。";
 "The iPhone did not confirm stopping location simulation in time." = "iPhone 未能及时确认停止模拟定位。";
+"Location coordinate type" = "定位坐标类型";
+"China map GCJ-02" = "国内地图 GCJ-02";
+"GPS WGS84" = "GPS WGS84";
+"Suggested here: China map. If the position is off, try GPS WGS84." = "建议先选国内地图；若位置有偏差，请切换 GPS WGS84。";
+"Suggested here: GPS WGS84. If the position is off, try China map." = "建议先选 GPS WGS84；若位置有偏差，请切换国内地图。";
+"Switching modes updates the current simulated location immediately." = "切换后会立即更新当前模拟位置。";

@@ -9,6 +9,7 @@ struct ConnectionHealthView: View {
     @State private var isShowingDeviceSetup = false
     @State private var didCopyDiagnostics = false
     @State private var probedTarget: LocationTarget?
+    @State private var locationProbe = LocationAccuracyProbe()
 
     var body: some View {
         List {
@@ -87,28 +88,27 @@ struct ConnectionHealthView: View {
             if let activeTarget {
                 Section {
                     Button {
-                        if locationProbe.isDiagnosticProbeEnabled {
-                            locationProbe.stopDiagnosticProbe()
+                        if locationProbe.isRunning {
+                            locationProbe.stop()
                             probedTarget = nil
                         } else {
                             probedTarget = activeTarget
-                            locationProbe.startDiagnosticProbe()
+                            locationProbe.start()
                         }
                     } label: {
                         Label(
-                            locationProbe.isDiagnosticProbeEnabled ? "停止读取定位回调" : "读取原始定位回调",
-                            systemImage: locationProbe.isDiagnosticProbeEnabled ? "stop.circle" : "location.magnifyingglass"
+                            locationProbe.isRunning ? "停止读取定位回调" : "读取原始定位回调",
+                            systemImage: locationProbe.isRunning ? "stop.circle" : "location.magnifyingglass"
                         )
                     }
-                    .disabled(!locationProbe.started)
 
-                    if locationProbe.isDiagnosticProbeEnabled, let probedTarget {
+                    if let probedTarget {
                         LabeledContent("模拟目标", value: formattedCoordinates(
                             latitude: probedTarget.latitude,
                             longitude: probedTarget.longitude
                         ))
 
-                        if let sample = locationProbe.diagnosticSample {
+                        if let sample = locationProbe.sample {
                             LabeledContent("定位回调", value: formattedCoordinates(
                                 latitude: sample.latitude,
                                 longitude: sample.longitude
@@ -123,15 +123,18 @@ struct ConnectionHealthView: View {
                                 time: .standard
                             ))
                             LabeledContent("软件模拟标记", value: simulatedSourceValue(sample))
+                        } else if let message = locationProbe.message {
+                            Text(message)
+                                .foregroundStyle(.orange)
                         } else {
-                            Text("等待本次读取开始后的定位回调…")
+                            Text("正在获取新的定位回调，最多等待 15 秒…")
                                 .foregroundStyle(.secondary)
                         }
                     }
                 } header: {
                     Text("定位精度调研")
                 } footer: {
-                    Text("仅显示本次读取后的最新 Core Location 回调，关闭页面即清除。数值距离不能单独证明 Apple 地图蓝点的显示坐标。")
+                    Text("使用独立定位读取器获取新的 Core Location 回调，关闭页面即清除。数值距离不能单独证明 Apple 地图蓝点的显示坐标。")
                 }
             }
 
@@ -230,7 +233,7 @@ struct ConnectionHealthView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onDisappear {
             diagnostics.cancel()
-            locationProbe.stopDiagnosticProbe()
+            locationProbe.stop()
             probedTarget = nil
         }
         .sheet(isPresented: $isShowingDeviceSetup) {
@@ -244,10 +247,6 @@ struct ConnectionHealthView: View {
             return target
         }
         return nil
-    }
-
-    private var locationProbe: BackgroundLocationKeepAlive {
-        appModel.deviceSession.backgroundKeepAlive
     }
 
     private func formattedCoordinates(latitude: Double, longitude: Double) -> String {

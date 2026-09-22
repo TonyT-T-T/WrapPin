@@ -9,13 +9,8 @@ struct ConnectionHealthView: View {
     @State private var isShowingDeviceSetup = false
     @State private var didCopyDiagnostics = false
     @State private var probedTarget: LocationTarget?
+    @State private var probedSimulationCoordinates: SimulationCoordinates?
     @State private var locationProbe = LocationAccuracyProbe()
-    @State private var coordinateTrialMessage: String?
-
-    private static let suzhouMapLatitude = 31.316633
-    private static let suzhouMapLongitude = 120.677664
-    private static let suzhouCandidateLatitude = 31.318719
-    private static let suzhouCandidateLongitude = 120.673397
 
     var body: some View {
         List {
@@ -97,8 +92,10 @@ struct ConnectionHealthView: View {
                         if locationProbe.isRunning {
                             locationProbe.stop()
                             probedTarget = nil
+                            probedSimulationCoordinates = nil
                         } else {
                             probedTarget = activeTarget
+                            probedSimulationCoordinates = appModel.deviceSession.activeSimulationCoordinates
                             locationProbe.start()
                         }
                     } label: {
@@ -108,10 +105,14 @@ struct ConnectionHealthView: View {
                         )
                     }
 
-                    if let probedTarget {
-                        LabeledContent("模拟目标", value: formattedCoordinates(
+                    if let probedTarget, let probedSimulationCoordinates {
+                        LabeledContent("地图选点", value: formattedCoordinates(
                             latitude: probedTarget.latitude,
                             longitude: probedTarget.longitude
+                        ))
+                        LabeledContent("模拟目标", value: formattedCoordinates(
+                            latitude: probedSimulationCoordinates.latitude,
+                            longitude: probedSimulationCoordinates.longitude
                         ))
 
                         if let sample = locationProbe.sample {
@@ -120,7 +121,7 @@ struct ConnectionHealthView: View {
                                 longitude: sample.longitude
                             ))
                             LabeledContent("数值距离", value: formattedDistance(
-                                target: probedTarget,
+                                target: probedSimulationCoordinates,
                                 sample: sample
                             ))
                             LabeledContent("水平精度", value: String(format: "%.0f m", sample.horizontalAccuracy))
@@ -141,38 +142,6 @@ struct ConnectionHealthView: View {
                     Text("定位精度调研")
                 } footer: {
                     Text("使用独立定位读取器获取新的 Core Location 回调，关闭页面即清除。数值距离不能单独证明 Apple 地图蓝点的显示坐标。")
-                }
-            }
-
-            if let activeTarget, isSuzhouTrialCoordinate(activeTarget) {
-                Section {
-                    LabeledContent("地图选点", value: formattedCoordinates(
-                        latitude: Self.suzhouMapLatitude,
-                        longitude: Self.suzhouMapLongitude
-                    ))
-                    LabeledContent("试验模拟值", value: formattedCoordinates(
-                        latitude: Self.suzhouCandidateLatitude,
-                        longitude: Self.suzhouCandidateLongitude
-                    ))
-
-                    Button {
-                        setSuzhouTrialLocation(useCandidate: isSuzhouMapCoordinate(activeTarget))
-                    } label: {
-                        Label(
-                            isSuzhouMapCoordinate(activeTarget) ? "试用候选模拟值" : "恢复原模拟坐标",
-                            systemImage: "arrow.left.arrow.right"
-                        )
-                    }
-
-                    if let coordinateTrialMessage {
-                        Text(coordinateTrialMessage)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                } header: {
-                    Text("苏州坐标系试验")
-                } footer: {
-                    Text("仅对本次苏州中心样本试验。切换后可重新读取原始定位回调，再看 Apple 地图蓝点；试验结束请点“恢复原模拟坐标”。")
                 }
             }
 
@@ -273,6 +242,7 @@ struct ConnectionHealthView: View {
             diagnostics.cancel()
             locationProbe.stop()
             probedTarget = nil
+            probedSimulationCoordinates = nil
         }
         .sheet(isPresented: $isShowingDeviceSetup) {
             PairingSetupView()
@@ -287,55 +257,12 @@ struct ConnectionHealthView: View {
         return nil
     }
 
-    private func isSuzhouMapCoordinate(_ target: LocationTarget) -> Bool {
-        abs(target.latitude - Self.suzhouMapLatitude) < 0.000001
-            && abs(target.longitude - Self.suzhouMapLongitude) < 0.000001
-    }
-
-    private func isSuzhouTrialCoordinate(_ target: LocationTarget) -> Bool {
-        isSuzhouMapCoordinate(target)
-            || (abs(target.latitude - Self.suzhouCandidateLatitude) < 0.000001
-                && abs(target.longitude - Self.suzhouCandidateLongitude) < 0.000001)
-    }
-
-    private func setSuzhouTrialLocation(useCandidate: Bool) {
-        let target: LocationTarget
-        if useCandidate {
-            target = LocationTarget(
-                name: "苏州中心广场（坐标系试验）",
-                subtitle: "WGS84 候选模拟坐标",
-                latitude: Self.suzhouCandidateLatitude,
-                longitude: Self.suzhouCandidateLongitude
-            )
-        } else {
-            target = appModel.selectedTarget.flatMap {
-                isSuzhouMapCoordinate($0) ? $0 : nil
-            } ?? LocationTarget(
-                name: "苏州中心广场",
-                subtitle: "苏州市 星港街167号",
-                latitude: Self.suzhouMapLatitude,
-                longitude: Self.suzhouMapLongitude
-            )
-        }
-
-        switch appModel.deviceSession.updateLocation(target) {
-        case .updated:
-            locationProbe.stop()
-            probedTarget = nil
-            coordinateTrialMessage = useCandidate
-                ? "候选坐标已排队；请读取新回调并查看 Apple 地图蓝点。"
-                : "原坐标已排队；请读取新回调确认恢复。"
-        case .failed, .unavailable:
-            coordinateTrialMessage = "切换失败，当前模拟坐标未确认改变。"
-        }
-    }
-
     private func formattedCoordinates(latitude: Double, longitude: Double) -> String {
         String(format: "%.6f, %.6f", latitude, longitude)
     }
 
     private func formattedDistance(
-        target: LocationTarget,
+        target: SimulationCoordinates,
         sample: LocationDiagnosticSample
     ) -> String {
         let targetLocation = CLLocation(latitude: target.latitude, longitude: target.longitude)

@@ -72,6 +72,7 @@ final class LocalDeviceSessionCoordinator: NSObject {
     private struct PendingSession {
         let pairingRecord: Data
         let target: LocationTarget
+        let simulationCoordinates: SimulationCoordinates
     }
 
     private struct RemotePairingService: Sendable {
@@ -133,6 +134,11 @@ final class LocalDeviceSessionCoordinator: NSObject {
     var onFailure: ((FailureStage) -> Void)?
 
     var onPhaseChange: ((DeviceSessionPhase) -> Void)?
+
+    var activeSimulationCoordinates: SimulationCoordinates? {
+        guard case .active = phase else { return nil }
+        return pendingSession?.simulationCoordinates
+    }
 
     private let browser = NetServiceBrowser()
     private let wifiPathMonitor = NWPathMonitor(requiredInterfaceType: .wifi)
@@ -196,7 +202,11 @@ final class LocalDeviceSessionCoordinator: NSObject {
         }
     }
 
-    func start(pairingRecord: Data, target: LocationTarget) {
+    func start(
+        pairingRecord: Data,
+        target: LocationTarget,
+        simulationCoordinates: SimulationCoordinates? = nil
+    ) {
         guard !workerIsRunning, !isBusy else { return }
         terminalFailureReported = false
         retryTelemetry.reset()
@@ -226,7 +236,11 @@ final class LocalDeviceSessionCoordinator: NSObject {
         // Reachability from a previous location session says nothing about the tunnel now.
         hasReachedDeviceTunnel = false
         isMobileDataStartupMode = false
-        pendingSession = PendingSession(pairingRecord: pairingRecord, target: target)
+        pendingSession = PendingSession(
+            pairingRecord: pairingRecord,
+            target: target,
+            simulationCoordinates: simulationCoordinates ?? SimulationCoordinates(target)
+        )
         resolvedService = nil
         phase = .discovering
         routeStartupForCurrentNetwork()
@@ -245,7 +259,10 @@ final class LocalDeviceSessionCoordinator: NSObject {
     }
 
     @discardableResult
-    func updateLocation(_ target: LocationTarget) -> ActiveLocationUpdateResult {
+    func updateLocation(
+        _ target: LocationTarget,
+        simulationCoordinates: SimulationCoordinates? = nil
+    ) -> ActiveLocationUpdateResult {
         guard
             workerIsRunning,
             case .active = phase,
@@ -253,14 +270,16 @@ final class LocalDeviceSessionCoordinator: NSObject {
             let pendingSession
         else { return .unavailable }
 
-        guard wp_location_session_update(activeSession, target.latitude, target.longitude) == 0 else {
+        let coordinates = simulationCoordinates ?? SimulationCoordinates(target)
+        guard wp_location_session_update(activeSession, coordinates.latitude, coordinates.longitude) == 0 else {
             fail("WrapPin could not update the active location.")
             return .failed
         }
 
         self.pendingSession = PendingSession(
             pairingRecord: pendingSession.pairingRecord,
-            target: target
+            target: target,
+            simulationCoordinates: coordinates
         )
         phase = .active(target)
         connectionStage = .active
@@ -583,7 +602,7 @@ final class LocalDeviceSessionCoordinator: NSObject {
         let sessionBits = UInt(bitPattern: session)
         let contextBits = UInt(bitPattern: Unmanaged.passRetained(self).toOpaque())
         let pairingRecord = pendingSession.pairingRecord
-        let target = pendingSession.target
+        let simulationCoordinates = pendingSession.simulationCoordinates
         let peerAddressString = resolvedService.host
 
         DispatchQueue.global(qos: .userInitiated).async {
@@ -609,8 +628,8 @@ final class LocalDeviceSessionCoordinator: NSObject {
                                 resolvedService.port,
                                 serviceIdentifier,
                                 authTag,
-                                target.latitude,
-                                target.longitude,
+                                simulationCoordinates.latitude,
+                                simulationCoordinates.longitude,
                                 locationStartedCallback,
                                 context,
                                 &result

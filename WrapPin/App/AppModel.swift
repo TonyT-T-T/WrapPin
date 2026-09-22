@@ -389,7 +389,13 @@ final class AppModel {
         activeSessionRecovery = recovery
         lastRecoverySaveDate = nil
         addToHistory(historyTarget)
-        switch deviceSession.updateLocation(deviceTarget) {
+        let simulationCoordinates = recovery.kind == .fixedLocation
+            ? SuzhouCoordinateCorrection.forFixedTarget(deviceTarget)
+            : nil
+        switch deviceSession.updateLocation(
+            deviceTarget,
+            simulationCoordinates: simulationCoordinates
+        ) {
         case .updated:
             usageAnalytics.record(
                 .activeLocationUpdated,
@@ -420,7 +426,11 @@ final class AppModel {
             case .drivingRoute: pendingSessionAnalyticsEvent = .drivingStarted
             case .fixedLocation: pendingSessionAnalyticsEvent = .fixedLocationStarted
             }
-            deviceSession.start(pairingRecord: pairingRecord, target: deviceTarget)
+            deviceSession.start(
+                pairingRecord: pairingRecord,
+                target: deviceTarget,
+                simulationCoordinates: simulationCoordinates
+            )
         } catch {
             activeSessionRecovery = nil
             pendingSessionAnalyticsEvent = nil
@@ -455,7 +465,10 @@ final class AppModel {
             }
             deviceSession.start(
                 pairingRecord: pairingRecord,
-                target: recovery.lastReportedLocation
+                target: recovery.lastReportedLocation,
+                simulationCoordinates: recovery.kind == .fixedLocation
+                    ? SuzhouCoordinateCorrection.forFixedTarget(recovery.lastReportedLocation)
+                    : nil
             )
         } catch {
             isRestoringInterruptedSession = false

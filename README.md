@@ -20,11 +20,17 @@
   <img src="https://img.shields.io/badge/iOS-27%2B-blue" alt="iOS 27+">
   <img src="https://img.shields.io/badge/UI-SwiftUI-orange" alt="SwiftUI">
   <img src="https://img.shields.io/badge/%E7%BB%B4%E6%8A%A4%E8%80%85-suversal-purple" alt="由 suversal 维护">
-  <img src="https://img.shields.io/badge/Version-1.0.10-lightgrey" alt="Version 1.0.9">
+  <img src="https://img.shields.io/badge/Version-1.0.10-lightgrey" alt="Version 1.0.10">
   <img src="https://img.shields.io/badge/License-PolyForm%20NC%201.0.0-blue" alt="PolyForm Noncommercial 1.0.0">
 </p>
 
-WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarthdev/Roam-Control) 的非官方社区中文分支，由 suversal 维护。上游提供设备配对、固定位置、模拟步行和真实位置恢复等核心能力；WrapPin 在此基础上完成简体中文界面与地图标签本地化、首次使用和连接引导、地址与坐标复制、连接诊断、LocalDevVPN 端点选择修复，并加入独立的深浅色图标、版本检查、GitHub 反馈及 X 关注入口。项目保留原作者署名和上游链接，不代表上游官方中文版。
+<p align="center">
+  <a href="https://github.com/suversal/WrapPin/releases/latest">下载最新版</a> ·
+  <a href="Documentation/UserGuide.zh-CN.md">使用手册</a> ·
+  <a href="https://x.com/suversal">在 X 联系 @suversal</a>
+</p>
+
+WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarthdev/Roam-Control) 的非官方社区中文分支，由 suversal 维护。上游提供设备配对、固定位置、模拟步行和真实位置恢复等核心能力；WrapPin 在此基础上完成简体中文界面与地图标签本地化、首次使用和连接引导、地址与坐标复制、连接诊断、坐标模式选择、路线预览和版本更新提醒。项目保留原作者署名和上游链接，不代表上游官方中文版。
 
 如果这个项目帮到了你，欢迎点一个 **Star**；如果你发现界面、文案、兼容性或连接流程还有改进空间，也欢迎提交 Issue 或 Pull Request。贡献前请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
@@ -35,7 +41,7 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 ## 当前进展
 
 - 当前公开版本为 **1.0.10（Build 30）**；下载以 [GitHub Releases](https://github.com/suversal/WrapPin/releases/tag/v1.0.10) 为准。
-- 本版增加固定位置的 WGS84／GCJ-02 坐标模式选择、启动时检查公开版本更新，并收紧步行与驾车路线预览卡片布局。两种坐标模式已在部分地点做真机测试；正式 Build 30 的独立安装与界面验收仍待完成。
+- 本版增加固定位置的 WGS84／GCJ-02 坐标模式选择、启动时检查公开版本更新，并收紧步行与驾车路线预览卡片布局。两种坐标模式已在部分地点做真机测试；正式 Build 30 的独立安装与界面验收尚无记录。
 - 已完成完整简体中文界面、地图标签本地化、配对与连接引导、中文安装文档和使用手册。
 - 已完善地址与坐标复制、连接检测、诊断信息复制、异常会话恢复和真实位置恢复流程。
 - 配对和定位启动不再依赖可能受 SideStore 重签 Bundle ID 影响的 `BGTaskScheduler`，并优先使用 LocalDevVPN 端点。
@@ -52,20 +58,21 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
   <sub>模拟固定位置 · 模拟步行与驾车路线</sub>
 </p>
 
-> 以上为真实功能截图，个别英文或旧名称与当前版本不同；功能布局基本一致，实际界面会跟随系统语言。后续将用 WrapPin 中文真机截图替换。
+> 以上为早期版本截图，仅供了解功能；当前界面、文案和路线卡片布局请以实际安装的版本为准。
 
 ## 主要功能
 
 - 使用 Apple 地图搜索地点、输入经纬度，或直接轻点地图选点。
+- 固定位置可切换 GCJ-02 修正与 WGS84 原值。地区建议仅作起点；如果显示位置有偏差，可切换另一种方式再核对。
 - 一键复制所选地点的可读地址或经纬度坐标。
 - 启动固定位置后直接更换坐标，无需重新建立整条连接。
-- 预览 Apple 地图步行或驾车路线，并设置对应的模拟速度。
+- 预览 Apple 地图步行或驾车路线；步行支持三档预设或 1–12 公里/小时自定义速度，驾车支持 5–240 公里/小时。
 - 在步行期间暂停、继续、原路返回或更换目的地。
 - 保存常用地点，快速访问最近使用的位置。
 - 会话结束时主动清除模拟坐标并恢复真实位置。
 - 为 Wi-Fi 和蜂窝网络提供分开的连接引导与诊断。
 - 在设置中选择 LocalDevVPN 或 Shadowrocket 作为连接不可用时的跳转应用。
-- 可在设置中检查公开版本、查看 GitHub 仓库、反馈问题、提交功能建议或关注维护者。
+- 打开 App 时检查最新公开版本，有更新时提醒；也可在设置中手动检查、反馈问题或联系维护者。
 - 支持深浅色外观、不同地图样式、动态字体、VoiceOver 和“减弱动态效果”。
 
 ## 实现原理
@@ -178,9 +185,9 @@ WrapPin 暂未通过 App Store 或 TestFlight 分发。第一阶段以 GitHub Re
 ## 模拟固定位置
 
 1. 搜索地点、输入经纬度、轻点地图，或从收藏和历史记录中选择位置。
-2. 检查地图上的位置点，轻点“开始模拟定位”。
-3. 如果出现 LocalDevVPN 或蜂窝网络提示，按页面引导操作。
-4. 等待状态显示“模拟定位中”，再打开 Apple 地图确认位置变化。
+2. 在地点卡片上选择模拟坐标模式。国内地点建议先试 GCJ-02，其他地点建议先试 WGS84；这只是初始建议。
+3. 检查地图上的位置点，轻点“开始模拟定位”。如果出现 LocalDevVPN 或蜂窝网络提示，按页面引导操作。
+4. 等待状态显示“模拟定位中”，再打开 Apple 地图核对实际显示位置。若有偏差，返回 WrapPin 切换另一种模式；同一地点的模拟坐标会随之更新。
 5. 需要换地点时，在 WrapPin 中选择新位置并轻点“更换模拟位置”，无需重新配对。
 6. 测试结束后回到 WrapPin，轻点“停止模拟并恢复”，保持 App 在前台直到恢复完成。
 
@@ -188,7 +195,7 @@ WrapPin 暂未通过 App Store 或 TestFlight 分发。第一阶段以 GitHub Re
 
 1. 选择目的地，轻点“预览步行”。
 2. 检查 Apple 地图返回的路线、距离、预计用时和到达时间。
-3. 选择步行速度，轻点“开始模拟步行”。
+3. 选择三档预设步速，或启用 1–12 公里/小时的自定义步速，轻点“开始模拟步行”。
 4. 步行期间可以暂停、继续、原路返回，或在保持连接的情况下更换目的地。
 5. 结束时使用“停止模拟并恢复”，不要只强制退出 App。
 
@@ -239,7 +246,7 @@ WrapPin 暂未通过 App Store 或 TestFlight 分发。第一阶段以 GitHub Re
 
 ## 隐私与许可证
 
-位置、坐标、搜索、收藏、历史记录、步行路线和配对记录均保存在 iPhone 本地。匿名使用统计默认关闭；启用后也不会发送位置、搜索、路线、配对数据、设备名称或诊断原文。详见[隐私说明](Documentation/Privacy.md)。
+位置、坐标、搜索、收藏、历史记录、步行路线和配对记录均保存在 iPhone 本地。打开 App 时会向 GitHub 查询最新公开版本，但不会随请求发送位置或配对数据。匿名使用统计默认关闭；启用后也不会发送位置、搜索、路线、配对数据、设备名称或诊断原文。详见[隐私说明](Documentation/Privacy.md)。
 
 项目当前使用 [PolyForm Noncommercial License 1.0.0](LICENSE)，源代码可查看，并允许按条款进行非商业使用、修改和分发；它不是 OSI 认可的开源许可证。第三方依赖保留各自的许可证。
 
@@ -247,8 +254,8 @@ WrapPin 暂未通过 App Store 或 TestFlight 分发。第一阶段以 GitHub Re
 
 ## 反馈与贡献
 
-普通问题和可复现的故障请使用本仓库的 GitHub Issues。安全问题请通过 GitHub Security Advisories 私下报告。提交内容前请删除配对文件、PIN、签名材料、账号凭据和私人位置。
+普通问题和可复现的故障请使用本仓库的 [GitHub Issues](https://github.com/suversal/WrapPin/issues)。安全问题请通过 GitHub Security Advisories 私下报告。提交内容前请删除配对文件、PIN、签名材料、账号凭据和私人位置。
 
-你也可以在 WrapPin 的“设置 → 社区”中轻点“关注我”，或直接访问 X 上的 [@suversal](https://x.com/suversal)。
+交流和使用反馈也可以通过 X 联系维护者 [@suversal](https://x.com/suversal)；App 内入口位于“设置 → 社区 → 关注我”。
 
 本项目由 suversal 作为非官方社区分支维护。核心实现来源、原作者版权声明、上游项目链接和第三方许可证均予以保留。

@@ -51,8 +51,8 @@ WrapPin 是 Sean Howarth 原项目 [Roam Control](https://github.com/seanhowarth
 
 ## 界面预览
 
-<img width="3382" height="2446" alt="image" src="https://github.com/user-attachments/assets/07f4fd23-3240-4bea-9162-a0695a32f277" />
-<img width="3372" height="2406" alt="image" src="https://github.com/user-attachments/assets/256c6a1e-8d54-4cf5-8aa3-5dd18b0573c2" />
+<img width="3960" height="2868" alt="Picsew_20260922225042" src="https://github.com/user-attachments/assets/53a866d2-bf4f-49f3-a51d-a8994072543d" />
+<img width="3960" height="2868" alt="Picsew_20260922225050" src="https://github.com/user-attachments/assets/84d346ae-096a-4eeb-812d-d56100c39df8" />
 
 <p align="center">
   <sub>模拟固定位置 · 模拟步行与驾车路线</sub>

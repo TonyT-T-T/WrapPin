@@ -40,6 +40,8 @@ Apple 将 `CLLocationCoordinate2D` 定义为 WGS84 坐标；高德地图使用 G
 
 `CLLocationManager.desiredAccuracy = kCLLocationAccuracyBest` 用于 WrapPin 获取**真实当前位置**，并不设置开发者模拟坐标的精度。复制坐标时显示的六位小数也不足以解释约 1 公里的偏差；实际注入仍使用未截断的 `Double`。
 
+`BackgroundLocationKeepAlive` 中的 `kCLLocationAccuracyKilometer` 容易因“约 1 公里”而被误认为直接原因；它只配置 WrapPin 自己用于后台保活的 Core Location 请求，不参与上表中的 DVT 坐标注入。尚无证据表明把它改成更高精度能消除 Apple 地图蓝点偏移。
+
 ## 真机复现与判别
 
 **第一轮继续测苏州中心广场这个固定地点**，使用同一台 iPhone、同一 iOS 版本。先确认此前是搜索结果、直接输入坐标还是地图点选。保持 WrapPin 固定模拟运行，在另一款能显示原始 Core Location 坐标的 App 中读取纬度、经度及时间，优先确认它是否收到 `31.316633, 120.677664`。Apple 地图的搜索图钉已确认落在广场，而蓝点在东南侧；重复搜索不再增加关键证据。

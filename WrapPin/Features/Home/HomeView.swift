@@ -284,7 +284,8 @@ struct HomeView: View {
                         isResolvingAddress: mapModel.isResolvingAddress,
                         isPaired: isPaired,
                         sessionPhase: appModel.deviceSession.phase,
-                        localDevVPNInstallURL: appModel.localDevVPNInstallURL,
+                        tunnelHandoffApp: appModel.tunnelHandoffApp,
+                        tunnelAppInstallURL: appModel.selectedTunnelAppInstallURL,
                         previewingRouteMode: walkingRoutePlanner.isLoading ? walkingRoutePlanner.mode : nil,
                         routeError: walkingRoutePlanner.errorMessage,
                         onToggleFavourite: {
@@ -351,7 +352,9 @@ struct HomeView: View {
                     Spacer()
                     MobileDataGuidanceView(
                         guidance: guidance,
-                        onOpenLocalDevVPN: appModel.deviceSession.openLocalDevVPN,
+                        tunnelHandoffApp: appModel.tunnelHandoffApp,
+                        isUsingMobileData: appModel.deviceSession.isUsingMobileDataForStartup,
+                        onOpenTunnelApp: appModel.deviceSession.openSelectedTunnelApp,
                         onRetry: appModel.deviceSession.retryConnection,
                         onUseMobileData: appModel.deviceSession.useMobileDataGuidance,
                         onMobileDataOff: appModel.deviceSession.confirmMobileDataIsOff,

@@ -1,6 +1,12 @@
 # 模拟位置精度调研
 
-调研分支：`codex/location-accuracy-research`，基于 `main` 的 `4ef99d1`。本文件记录静态代码检查和真机复现方案；目前没有可量化的真机误差样本，不能据此认定根因。
+调研分支：`codex/location-accuracy-research`，基于 `main` 的 `4ef99d1`。用户反馈的核心现象是 **WrapPin 中的位置与对照地图中的位置约相差 1 公里**。目前尚缺地点、对照 App、两边坐标和截图，不能据此认定根因。本文件记录静态代码检查与针对这一现象的真机复现方案。
+
+## 优先排查：两张地图是否使用同一坐标系
+
+Apple 将 `CLLocationCoordinate2D` 定义为 WGS84 坐标。高德地图使用 GCJ-02，百度地图默认使用 BD-09；两家地图平台都明确说明，直接把其他坐标系的数值当成自家坐标显示，会产生位置偏移。因此，如果对照地图是高德或百度，坐标系不一致是首要假设，**但不能仅凭约 1 公里的距离就判定为这个原因**。也不能对所有中国大陆坐标固定加减一个偏移量。
+
+先确认这 1 公里是哪个位置之间的距离：WrapPin 的选点标记与对照地图上的目标地点，还是开始模拟后目标 App 的定位蓝点与 WrapPin 选点标记。前者侧重地图选点和数据来源；后者还涉及模拟位置服务及目标 App 的定位处理。
 
 ## 先定义问题
 
@@ -24,13 +30,15 @@
 | 路线移动 | Swift 每秒按速度推进一次，沿 `MKMapPoint` 折线插值；Rust 每 200 ms 检查目标是否更新 | 高速时每秒可能跨越几十米；测量更新延迟和目标 App 的平滑处理 |
 | 路线终点 | 到达时发送最初选择的 `destination.coordinate` | 比较路线折线末点和目的地坐标，留意到达瞬间的跳变 |
 
-`CLLocationManager.desiredAccuracy = kCLLocationAccuracyBest` 用于 WrapPin 获取**真实当前位置**，并不设置开发者模拟坐标的精度。仅提高这一配置不能解释固定位置偏差。
+`CLLocationManager.desiredAccuracy = kCLLocationAccuracyBest` 用于 WrapPin 获取**真实当前位置**，并不设置开发者模拟坐标的精度。复制坐标时显示的六位小数也不足以解释约 1 公里的偏差；实际注入仍使用未截断的 `Double`。
 
 ## 真机复现与判别
 
-在同一台 iPhone、同一 iOS 版本上，选一个已知经纬度，依次用“直接输入坐标、搜索结果、地图点选”启动固定位置；随后测试短距离步行和驾车路线。每次记录：WrapPin 显示或复制的原始坐标、接收端 `CLLocation.coordinate`、`horizontalAccuracy`、`timestamp`、`sourceInformation?.isSimulatedBySoftware`、目标 App 的定位精度权限、前后台状态与截图。位置和配对数据仅保存在本地测试记录，不放进公开 issue 或遥测。
+**第一轮只测一个固定地点**，使用同一台 iPhone、同一 iOS 版本。记录地点名称、城市、对照地图 App、WrapPin 选点方式、WrapPin 复制的经纬度和两边截图。先在 WrapPin 与 Apple 地图上对照同一地点及模拟后的定位蓝点，再与高德或百度对照。若对照平台能导出经纬度，连同其标注的坐标系一并记录；不要把 WGS84、GCJ-02 和 BD-09 的数字直接相减。
 
-用 `CLLocation.distance(from:)` 计算原始坐标与接收坐标之间的米数，并保存连续至少 30 次回调的最大值、平均值及时间间隔。分别在中国大陆和其他地区选取测试点；若引用第三方地图经纬度，先确认其坐标系，不能把不同坐标系直接相减。
+若第一轮仍不能定位问题，再依次用“直接输入已知 WGS84 坐标、搜索结果、地图点选”启动固定位置，并用能显示原始 Core Location 回调的测试 App 记录 `CLLocation.coordinate`、`horizontalAccuracy`、`timestamp`、`sourceInformation?.isSimulatedBySoftware`、定位精度权限、前后台状态与截图。最后再测短距离步行和驾车路线。位置和配对数据仅保存在本地测试记录，不放进公开 issue 或遥测。
+
+对同一坐标系的输入与接收坐标，可用 `CLLocation.distance(from:)` 计算米数，并保存连续至少 30 次回调的最大值、平均值及时间间隔。若要扩大验证范围，再分别在中国大陆和其他地区选取测试点。
 
 判别顺序：
 
@@ -44,4 +52,4 @@
 
 静态检查只能说明应用当前未对固定位置坐标主动降精度；不能证明 iOS 已按该坐标向所有 App 报告，也不能证明中国大陆地图偏移的原因。先拿到一组“输入坐标 → 原始定位回调”的真机样本，再决定修选点、路线算法、会话稳定性或仅调整用户说明。不要在没有定位来源证据时加入统一偏移补偿。
 
-参考：[Apple MapProxy 坐标转换](https://developer.apple.com/documentation/mapkit/mapproxy/convert%28_%3Afrom%3A%29)、[CLLocation.horizontalAccuracy](https://developer.apple.com/documentation/corelocation/cllocation/horizontalaccuracy)、[CLLocation.sourceInformation](https://developer.apple.com/documentation/corelocation/cllocation/sourceinformation)。
+参考：[Apple 坐标定义](https://developer.apple.com/documentation/corelocation/cllocationcoordinate2d)、[Apple MapProxy 坐标转换](https://developer.apple.com/documentation/mapkit/mapproxy/convert%28_%3Afrom%3A%29)、[高德坐标系说明](https://lbs.amap.com/api/javascript-api-v2/guide/transform/convertfrom)、[百度坐标系说明](https://lbsyun.baidu.com/skins/MySkin/resources/iframs/coordinate.html)、[CLLocation.horizontalAccuracy](https://developer.apple.com/documentation/corelocation/cllocation/horizontalaccuracy)、[CLLocation.sourceInformation](https://developer.apple.com/documentation/corelocation/cllocation/sourceinformation)。

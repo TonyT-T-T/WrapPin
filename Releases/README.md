@@ -1,5 +1,21 @@
 # WrapPin releases
 
+## 1.0.11 (Build 31)
+
+- Created: 23 September 2026
+- Package: `WrapPin-1.0.11-build31.ipa`
+- Build: optimized unsigned Xcode Release Archive, arm64 iPhone executable
+- Requires: iOS 27.0 or later
+- Xcode: 27.0 (`27A266a`)
+- Distribution: unsigned IPA for SideStore or another user-side signing tool
+- SHA-256: `dc0c622184d258341c47bd64356a04834a447eaee1231034de9ec082eac1ab45`
+- Changes: custom walking speed now adjusts in 0.1 km/h steps; driving speed now adjusts in 1 km/h steps. Ranges and defaults are unchanged.
+- Verification: source checks, Release Archive and IPA identity/integrity checks passed. Build 31 has not yet been independently installed or exercised on an iPhone.
+- Known issues: this release does not change route planning, coordinate handling or third-party simulated-location acceptance.
+- Publication: GitHub Release `v1.0.11`.
+
+See [the 1.0.11 build notes](../Documentation/Release-1.0.11.md) for details.
+
 ## 1.0.10 (Build 30)
 
 - Created: 22 September 2026

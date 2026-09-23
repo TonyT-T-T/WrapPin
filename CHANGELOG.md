@@ -4,6 +4,17 @@ All notable public changes to WrapPin are recorded here.
 
 ## [Unreleased]
 
+## [1.0.11] - 2026-09-23
+
+### Improved
+
+- Changed custom walking-speed adjustment from 0.5 km/h to 0.1 km/h steps.
+- Changed driving-speed adjustment from 5 km/h to 1 km/h steps.
+
+### Known limitations
+
+- This release changes only the speed-control increments. Build 31 still needs an independent SideStore installation and physical-iPhone interaction check.
+
 ## [1.0.10] - 2026-09-22
 
 ### Added
@@ -126,7 +137,8 @@ First stable WrapPin release, based on Roam Control 0.9.2 Beta 3 and maintained 
 - Unsigned Release build and IPA integrity checks pass for version `1.0.0` Build `1`.
 - Earlier candidates passed physical-device installation and core usage testing; the final 1.0 package should still be installed once before public release.
 
-[Unreleased]: https://github.com/suversal/WrapPin/compare/v1.0.10...HEAD
+[Unreleased]: https://github.com/suversal/WrapPin/compare/v1.0.11...HEAD
+[1.0.11]: https://github.com/suversal/WrapPin/releases/tag/v1.0.11
 [1.0.10]: https://github.com/suversal/WrapPin/releases/tag/v1.0.10
 [1.0.9]: https://github.com/suversal/WrapPin/releases/tag/v1.0.9
 [1.0.8]: https://github.com/suversal/WrapPin/releases/tag/v1.0.8

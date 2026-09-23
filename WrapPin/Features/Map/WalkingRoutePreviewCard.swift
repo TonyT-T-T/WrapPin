@@ -134,7 +134,7 @@ struct WalkingRoutePreviewCard: View {
                     Text(customWalkingSpeedText)
                         .font(.subheadline.monospacedDigit().weight(.semibold))
                 }
-                Slider(value: customWalkingSpeedBinding, in: 1...12, step: 0.5)
+                Slider(value: customWalkingSpeedBinding, in: 1...12, step: 0.1)
                     .accessibilityLabel("Walking speed")
                     .accessibilityValue(customWalkingSpeedText)
                 Text("Constant route speed · 1–12 km/h")
@@ -167,7 +167,7 @@ struct WalkingRoutePreviewCard: View {
                 Text(drivingSpeedText)
                     .font(.subheadline.monospacedDigit().weight(.semibold))
             }
-            Slider(value: drivingSpeedBinding, in: 5...240, step: 5)
+            Slider(value: drivingSpeedBinding, in: 5...240, step: 1)
                 .accessibilityLabel("Simulated driving speed")
                 .accessibilityValue(drivingSpeedText)
             Text("Constant route speed · 5–240 km/h")

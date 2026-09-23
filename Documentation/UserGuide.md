@@ -73,7 +73,7 @@ Only LocalDevVPN startup needs this temporary change. After the secure location 
 1. Choose a destination.
 2. Tap **Preview Walk**.
 3. Check the route, distance, estimated time and arrival time.
-4. Choose a walking pace, or turn on **Custom walking speed** to select 1–12 km/h in 0.5 km/h steps. For cycling or faster travel, use a driving route where suitable.
+4. Choose a walking pace, or turn on **Custom walking speed** to select 1–12 km/h in 0.1 km/h steps. For cycling or faster travel, use a driving route where suitable.
 5. Tap **Start Walking**.
 
 During the walk:
@@ -93,7 +93,7 @@ For UK regional settings, short distances are shown in yards and longer distance
 
 ## Driving routes
 
-Choose a destination and tap **Preview Drive**. Check the road route, then set a constant simulated speed between 5 and 240 km/h before tapping **Start Driving**. The displayed travel time uses that simulated speed, not live traffic. You can pause or resume during the route. At the destination, the simulated position stays active until you tap **Stop & Restore** and confirm that your real location has returned. The app does not reverse driving routes because one-way roads may make the reverse path invalid.
+Choose a destination and tap **Preview Drive**. Check the road route, then set a constant simulated speed between 5 and 240 km/h in 1 km/h steps before tapping **Start Driving**. The displayed travel time uses that simulated speed, not live traffic. You can pause or resume during the route. At the destination, the simulated position stays active until you tap **Stop & Restore** and confirm that your real location has returned. The app does not reverse driving routes because one-way roads may make the reverse path invalid.
 
 ## Map controls
 

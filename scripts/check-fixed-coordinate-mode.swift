@@ -38,8 +38,21 @@ struct FixedCoordinateModeCheck {
         let oldData = try! JSONSerialization.data(withJSONObject: oldPayload)
         precondition(try! JSONDecoder().decode(SessionRecoveryRecord.self, from: oldData).fixedCoordinateMode == nil)
 
+        let route = SessionRecoveryRecord.route(
+            from: suzhou,
+            to: overseas,
+            mode: .driving,
+            coordinateMode: .gcj02,
+            speedMetresPerSecond: 20
+        )
+        let restoredRoute = try! JSONDecoder().decode(
+            SessionRecoveryRecord.self,
+            from: JSONEncoder().encode(route)
+        )
+        precondition(restoredRoute.fixedCoordinateMode == .gcj02)
+
         print(String(format: "Suzhou GCJ-02 mode: %.6f, %.6f", converted.latitude, converted.longitude))
         print("WGS84 mode preserves numeric coordinates")
-        print("Recovery mode round-trips; legacy recovery still decodes")
+        print("Fixed and route recovery modes round-trip; legacy recovery still decodes")
     }
 }

@@ -20,6 +20,7 @@ struct RouteRecoveryCheck {
             from: LocationTarget(name: "Start"),
             to: LocationTarget(name: "End"),
             mode: .walking,
+            coordinateMode: .gcj02,
             speedMetresPerSecond: 7.5 / 3.6
         )
         let restoredCustom = try decoder.decode(
@@ -27,12 +28,14 @@ struct RouteRecoveryCheck {
             from: JSONEncoder().encode(customWalk)
         )
         precondition(restoredCustom.kind == .walkingRoute)
+        precondition(restoredCustom.fixedCoordinateMode == .gcj02)
         precondition(abs((restoredCustom.savedRouteSpeed ?? 0) * 3.6 - 7.5) < 0.0001)
 
         let driving = SessionRecoveryRecord.route(
             from: LocationTarget(name: "Start"),
             to: LocationTarget(name: "End"),
             mode: .driving,
+            coordinateMode: .wgs84,
             speedMetresPerSecond: 100 / 3.6
         )
         let restored = try decoder.decode(
@@ -40,6 +43,7 @@ struct RouteRecoveryCheck {
             from: JSONEncoder().encode(driving)
         )
         precondition(restored.kind == .drivingRoute && restored.routeMode == .driving)
+        precondition(restored.fixedCoordinateMode == .wgs84)
         precondition(abs((restored.savedRouteSpeed ?? 0) * 3.6 - 100) < 0.0001)
         print("Route recovery: legacy walking, custom walking and driving records passed")
     }

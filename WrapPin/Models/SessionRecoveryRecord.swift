@@ -10,6 +10,8 @@ struct SessionRecoveryRecord: Codable, Equatable {
     var kind: Kind
     var lastReportedLocation: LocationTarget
     var destination: LocationTarget?
+    // Kept under its original persisted name for backward compatibility.
+    // The selected mode now applies to fixed, walking, and driving sessions.
     var fixedCoordinateMode: FixedCoordinateMode?
     var walkingPaceMetresPerSecond: Double?
     var routeSpeedMetresPerSecond: Double?
@@ -48,13 +50,14 @@ struct SessionRecoveryRecord: Codable, Equatable {
         from start: LocationTarget,
         to destination: LocationTarget,
         mode: RouteMode,
+        coordinateMode: FixedCoordinateMode,
         speedMetresPerSecond: Double
     ) -> SessionRecoveryRecord {
         SessionRecoveryRecord(
             kind: mode == .walking ? .walkingRoute : .drivingRoute,
             lastReportedLocation: start,
             destination: destination,
-            fixedCoordinateMode: nil,
+            fixedCoordinateMode: coordinateMode,
             walkingPaceMetresPerSecond: nil,
             routeSpeedMetresPerSecond: speedMetresPerSecond,
             startedAt: .now,

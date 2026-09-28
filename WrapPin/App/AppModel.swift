@@ -371,6 +371,7 @@ final class AppModel {
         at initialTarget: LocationTarget,
         destination: LocationTarget,
         mode: RouteMode,
+        coordinateMode: FixedCoordinateMode,
         speedMetresPerSecond: Double
     ) async {
         await startLocationSession(
@@ -381,6 +382,7 @@ final class AppModel {
                 from: initialTarget,
                 to: destination,
                 mode: mode,
+                coordinateMode: coordinateMode,
                 speedMetresPerSecond: speedMetresPerSecond
             )
         )
@@ -402,13 +404,11 @@ final class AppModel {
         activeSessionRecovery = recovery
         lastRecoverySaveDate = nil
         addToHistory(historyTarget)
-        let simulationCoordinates = recovery.kind == .fixedLocation
-            ? FixedCoordinateTransform.coordinates(
-                for: deviceTarget,
-                mode: recovery.fixedCoordinateMode
-                    ?? FixedCoordinateMode.recommended(for: deviceTarget)
-            )
-            : nil
+        let simulationCoordinates = FixedCoordinateTransform.coordinates(
+            for: deviceTarget,
+            mode: recovery.fixedCoordinateMode
+                ?? FixedCoordinateMode.recommended(for: deviceTarget)
+        )
         switch deviceSession.updateLocation(
             deviceTarget,
             simulationCoordinates: simulationCoordinates
@@ -483,13 +483,11 @@ final class AppModel {
             deviceSession.start(
                 pairingRecord: pairingRecord,
                 target: recovery.lastReportedLocation,
-                simulationCoordinates: recovery.kind == .fixedLocation
-                    ? FixedCoordinateTransform.coordinates(
-                        for: recovery.lastReportedLocation,
-                        mode: recovery.fixedCoordinateMode
-                            ?? FixedCoordinateMode.recommended(for: recovery.lastReportedLocation)
-                    )
-                    : nil
+                simulationCoordinates: FixedCoordinateTransform.coordinates(
+                    for: recovery.lastReportedLocation,
+                    mode: recovery.fixedCoordinateMode
+                        ?? FixedCoordinateMode.recommended(for: recovery.lastReportedLocation)
+                )
             )
         } catch {
             isRestoringInterruptedSession = false
@@ -655,7 +653,11 @@ final class AppModel {
             let destination = recovery.destination,
             destination.id == target.id
         {
-            recovery = .fixed(at: destination, mode: .wgs84)
+            recovery = .fixed(
+                at: destination,
+                mode: recovery.fixedCoordinateMode
+                    ?? FixedCoordinateMode.recommended(for: destination)
+            )
         } else {
             recovery.lastReportedLocation = target
             recovery.updatedAt = now

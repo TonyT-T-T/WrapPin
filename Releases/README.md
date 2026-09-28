@@ -1,5 +1,21 @@
 # WrapPin releases
 
+## 1.0.12 (Build 32)
+
+- Created: 28 September 2026
+- Package: `WrapPin-1.0.12-build32.ipa`
+- Build: optimized unsigned Xcode Release Archive, arm64 iPhone executable
+- Requires: iOS 27.0 or later
+- Xcode: 27.0 (`27A266a`)
+- Distribution: unsigned IPA for SideStore or another user-side signing tool
+- SHA-256: `6f700a8ce62b2e03e31bb4217d45971b4972b3f62dae8df134091232fc9d9999`
+- Changes: applies the selected GCJ-02 correction or unchanged WGS84 mode to walking and driving route starts, movement updates, destinations, return trips and interrupted-session recovery.
+- Verification: source checks, Release Archive and IPA identity/integrity checks passed. The same feature code passed physical-device testing in the local Build 32 test package; the formal package was rebuilt after applying the 1.0.12 version metadata.
+- Known issues: coordinate-mode selection remains source- and region-dependent; third-party simulated-location acceptance and device-tunnel reachability are unchanged.
+- Publication: GitHub Release `v1.0.12`.
+
+See [the 1.0.12 build notes](../Documentation/Release-1.0.12.md) for details.
+
 ## 1.0.11 (Build 31)
 
 - Created: 23 September 2026

@@ -367,7 +367,12 @@ struct HomeView: View {
                             guard let target = mapModel.selectedLocation else { return }
                             Task {
                                 if let route = await walkingRoutePlanner.preview(to: target, mode: mode) {
-                                    walkingSimulation.prepare(route: route, destination: target, mode: mode)
+                                    walkingSimulation.prepare(
+                                        route: route,
+                                        destination: target,
+                                        mode: mode,
+                                        coordinateMode: fixedCoordinateMode
+                                    )
                                     mapModel.show(route)
                                 }
                             }
@@ -704,6 +709,9 @@ struct HomeView: View {
             return
         }
 
+        let routeCoordinateMode = recovery.fixedCoordinateMode
+            ?? FixedCoordinateMode.recommended(for: destination)
+        fixedCoordinateMode = routeCoordinateMode
         isPreparingRecoveredWalk = true
         Task { @MainActor in
             let route = await walkingRoutePlanner.preview(
@@ -719,7 +727,12 @@ struct HomeView: View {
             }
 
             appModel.dismissInterruptedSessionRecovery()
-            walkingSimulation.prepare(route: route, destination: destination, mode: recovery.routeMode)
+            walkingSimulation.prepare(
+                route: route,
+                destination: destination,
+                mode: recovery.routeMode,
+                coordinateMode: routeCoordinateMode
+            )
             if let savedSpeed = recovery.savedRouteSpeed, savedSpeed.isFinite {
                 if recovery.routeMode == .walking {
                     if let recoveredPace = WalkingPace.allCases.first(where: {

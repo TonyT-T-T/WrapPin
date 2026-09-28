@@ -41,6 +41,7 @@ final class WalkingSimulationController {
     var pace: WalkingPace = .normal
     var customWalkingSpeedKilometresPerHour: Double?
     private(set) var mode: RouteMode = .walking
+    private(set) var coordinateMode: FixedCoordinateMode = .wgs84
     var drivingSpeedKilometresPerHour: Double = 80
 
     @ObservationIgnored
@@ -85,10 +86,16 @@ final class WalkingSimulationController {
         }
     }
 
-    func prepare(route: MKRoute, destination: LocationTarget, mode: RouteMode = .walking) {
+    func prepare(
+        route: MKRoute,
+        destination: LocationTarget,
+        mode: RouteMode = .walking,
+        coordinateMode: FixedCoordinateMode
+    ) {
         movementTask?.cancel()
         movementTask = nil
         self.mode = mode
+        self.coordinateMode = coordinateMode
 
         let polyline = route.polyline
         let points = polyline.points()
@@ -158,6 +165,7 @@ final class WalkingSimulationController {
             at: movementTarget(at: routePoints[0].coordinate, destination: destination),
             destination: destination,
             mode: mode,
+            coordinateMode: coordinateMode,
             speedMetresPerSecond: speedMetresPerSecond
         )
 
@@ -282,7 +290,16 @@ final class WalkingSimulationController {
                     ? destination
                     : self.movementTarget(at: coordinate, destination: destination)
 
-                guard deviceSession.updateLocation(target) == .updated else {
+                // Keep MapKit's route untouched for drawing and progress. Only
+                // transform the coordinate sent through LocationSimulation.
+                let simulationCoordinates = FixedCoordinateTransform.coordinates(
+                    for: target,
+                    mode: self.coordinateMode
+                )
+                guard deviceSession.updateLocation(
+                    target,
+                    simulationCoordinates: simulationCoordinates
+                ) == .updated else {
                     self.phase = .failed(String(localized: "The active location session ended before the route finished."))
                     return
                 }
